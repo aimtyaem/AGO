@@ -59,7 +59,7 @@ This project includes the following components:
 |  Step 1: Introduction       |
 |  Step 2: Features Overview  |
 |  Step 3: Set Up Profile     |
-|  [Start Using the App]      |
+|  [Start Using AGO webApp]   |
 +-----------------------------+
 ```
 
