@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Page</title>
+<style>
+  body {
+    display: flex;
+  }
+  #menu {
+    width: 200px;
+    border-right: 1px solid #000;
+    padding: 10px;
+  }
+  #content {
+    flex-grow: 1;
+    padding: 10px;
+  }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  li {
+    margin: 5px 0;
+  }
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+<div id="menu">
+  <h2>Files</h2>
+  <ul id="files-list"></ul>
+</div>
+<div id="content">
+  <h1>AutoGuided Onboarding WebApp for Carbon Footprint Reduction</h1>
+  <p>The AutoGuided Onboarding webApp (AGO) aims to address the pressing issue of carbon footprint reduction through innovative technology. By leveraging autonomous small satellites (smallsats) for earth observation, AGO provides valuable insights and actionable data to help individuals and organizations make informed decisions about their carbon footprint. This project is an effort to create a user-friendly web application that guides users through the process of understanding and reducing their carbon emissions.</p>
+  <h2>Welcome to the Home Page</h2>
+  <p>Select a file from the menu to view its details.</p>
+</div>
+
+<script>
+  const files = [
+    "onboarding.Yaml",
+    "onboarding.Html",
+    "Dashboard.html",
+    "Dashboard.json",
+    "Sat_data.ipynb",
+    "carbon_model.ipynb",
+    "Onboarding_Dashbiard_AutoGuidedChatbot.ipynb",
+    "aws_ground_station.ipynb",
+    "imagery_processing.ipynb"
+  ];
+
+  const filesList = document.getElementById('files-list');
+  files.forEach(file => {
+    const listItem = document.createElement('li');
+    const link = document.createElement('a');
+    link.href = `https://github.com/aimtyaem/AGO/blob/main/${file}`;
+    link.textContent = file;
+    listItem.appendChild(link);
+    filesList.appendChild(listItem);
+  });
+</script>
+</body>
+</html>
