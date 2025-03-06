@@ -6,7 +6,7 @@ The AutoGuided Onboarding webApp (AGO) aims to address the pressing issue of car
 ![Auto smallsat network topology](https://github.com/aimtyaem/EOInfo/blob/a71ee89bf3f7443bb7766dca35ce432feffd1bfd/1751033024.jpg)
 
 
-## Repository Structure
+## Project Structure
 
 ```
 autoguided-webapp/  
