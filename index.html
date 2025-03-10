@@ -58,10 +58,7 @@
 </style>
 </head>
 <body>
-<div id="menu">
-  <h2>Files</h2>
-  <ul id="files-list"></ul>
-</div>
+
 
 <div id="content">
   <h1>AutoGuided Onboarding WebApp for Carbon Footprint Reduction</h1>
@@ -128,27 +125,7 @@
   </ul>
 </div>
 
-<script>
-  const files = [
-    "https://github.com/aimtyaem/AGO/blob/main/README.md",
-    "https://github.com/aimtyaem/AGO/blob/main/Setup.MD", 
-    "https://github.com/aimtyaem/AGO/blob/CFP/AutoGuided%20onboarding%20Features.md", 
-    "https://github.com/aimtyaem/AGO/blob/main/Data%20requirements.md",
-    "https://github.com/aimtyaem/AGO/blob/main/Autosmallsat%20overview.md",
-    "https://github.com/aimtyaem/AGO/blob/CFP/Turning%20prototype%20into%20MVP.pdf",
-    "https://github.com/aimtyaem/AGO/blob/CFP/Contact.md"
-  ];
 
-  const filesList = document.getElementById('files-list');
-  files.forEach(file => {
-    const listItem = document.createElement('li');
-    const link = document.createElement('a');
-    link.href = `https://github.com/aimtyaem/AGO/blob/main/${file}`;
-    link.textContent = file;
-    listItem.appendChild(link);
-    filesList.appendChild(listItem);
-  });
-</script>
 
 </body>
 </html>
