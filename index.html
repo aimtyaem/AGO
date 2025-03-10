@@ -55,16 +55,25 @@
   p {
     margin-bottom: 15px;
   }
+
+  pre {
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+
+  code {
+    font-family: Consolas, monospace;
+  }
 </style>
 </head>
 <body>
-
 
 <div id="content">
   <h1>AutoGuided Onboarding WebApp for Carbon Footprint Reduction</h1>
 
   <p>
-    
     <strong>Challenge Statement:</strong> Individuals and businesses are increasingly seeking to understand and reduce their carbon footprint. However, the journey to carbon reduction can be complex and overwhelming.
   </p>
 
@@ -79,9 +88,9 @@
     <strong>Goal:</strong> Provide the data foundation for the AutoGuided Onboarding experience by acquiring and processing satellite raster data that will inform carbon footprint insights.
   </p>
   <ul>
-    <li><strong>Data Source:</strong> Sentinel-2, Landsat. Focus on vegetation indices like NDVI for MVP as a carbon proxy.</li>
+    <li><strong>Data Source:</strong> Sentinel-2, Landsat. Focus on built-up indices like NDBI for MVP as a carbon proxy.</li>
     <li><strong>Data Processing Tasks:</strong> Ensure easy interpretability for users.</li>
-    <li><strong>Vegetation Index Calculation:</strong> Use NDVI as a simple metric to introduce users to the carbon footprint concept.</li>
+    <li><strong>Built-Up Index Calculation:</strong> Use NDBI as a simple metric to introduce users to the carbon footprint concept.</li>
   </ul>
 
   <h3>2. Intelligent Carbon Modeling for AutoGuided Understanding</h3>
@@ -89,8 +98,8 @@
     <strong>Goal:</strong> Develop a simplified yet informative carbon model that translates processed raster data into user-understandable carbon footprint metrics.
   </p>
   <ul>
-    <li><strong>Vegetation-Based Carbon Sequestration Model:</strong> A simple entry point for users to understand carbon impact.</li>
-    <li><strong>Output Metrics:</strong> Use user-friendly terms like “Green Index” and “Carbon Footprint Indicator.”</li>
+    <li><strong>Urban Development Carbon Impact Model:</strong> A simple entry point for users to understand carbon impact.</li>
+    <li><strong>Output Metrics:</strong> Use user-friendly terms like "Development Index" and "Carbon Footprint Indicator."</li>
   </ul>
 
   <h3>3. Chatbot for AutoGuided Onboarding & Personalized Guidance</h3>
@@ -103,29 +112,111 @@
     <li><strong>Personalized Recommendations:</strong> Users receive tailored suggestions for reducing their carbon footprint.</li>
   </ul>
 
-  <h2>Web Application Framework</h2>
+  <h2>Technical Setup & AI DevOps Integration</h2>
+
+  <h3>Setting up the Notebook Manually</h3>
+  <p>To set up the notebook manually, follow these steps:</p>
+  <ol>
+    <li><strong>Ensure you have Python 3.9+ installed.</strong> You can check your Python version by running <code>python --version</code> in your terminal. If you don't have Python 3.9 or higher, please install it before proceeding.</li>
+    <li><strong>Install Jupyter (Lab or Notebook):</strong>
+      <pre><code>pip install jupyterlab</code></pre>
+      This command installs JupyterLab, which provides a more feature-rich environment. If you prefer the classic Jupyter Notebook interface, you can install it using <code>pip install notebook</code>.
+    </li>
+    <li><strong>Clone the repository:</strong>
+      <pre><code>git clone https://github.com/aimtyaem/CFP-csv-datasets-.git</code></pre>
+      This command clones the repository containing the notebook and associated files to your local machine.
+    </li>
+    <li><strong>Navigate to the cloned directory:</strong>
+      <pre><code>cd CFP-csv-datasets-</code></pre>
+      This command changes your current directory in the terminal to the newly cloned repository folder.
+    </li>
+    <li><strong>Open the Jupyter notebook:</strong>
+      <pre><code>jupyter lab</code></pre>
+      or
+      <pre><code>jupyter notebook</code></pre>
+      This command launches JupyterLab (or Jupyter Notebook) in your web browser.
+    </li>
+    <li><strong>In Jupyter Lab (or Notebook), open the <code>coefficients.ipynb</code> file and run all cells.</strong> Once Jupyter is open, you should see the <code>coefficients.ipynb</code> file in the file browser. Open it, and then execute all cells in the notebook to run the code and generate the results. You can typically run all cells by going to the "Run" menu and selecting "Run All Cells".</li>
+  </ol>
+
+  <h3>AI DevOps Integration</h3>
+  <p>This section provides examples of integrating various AWS services in an AI DevOps context:</p>
   <ul>
-    <li><strong>Framework Choice:</strong> Flask/Django for backend, React/Vue.js for frontend.</li>
-    <li><strong>Key UI Elements:</strong> Interactive map, chatbot interface, clear data visualizations.</li>
+    <li><strong>AWS Ground Station:</strong> For satellite data ingestion and processing.</li>
+    <li><strong>Carbon Model Deployment:</strong> Using AWS SageMaker for model training and deployment.</li>
+    <li><strong>H2OChatbot for Onboarding Flow:</strong> A chatbot interface for user guidance.</li>
+    <li><strong>Image Processing:</strong> Leveraging AWS Step Functions for automated workflows.</li>
+    <li><strong>Dashboard:</strong> Real-time monitoring with AWS QuickSight and CloudWatch.</li>
   </ul>
 
-  <h2>Hackathon Focus & Deliverables</h2>
-  <ul>
-    <li><strong>AGO MVP:</strong> A functional onboarding experience with a chatbot and data integration.</li>
-    <li><strong>Code Repository:</strong> Documented code emphasizing the AutoGuided Onboarding process.</li>
-    <li><strong>Demo Presentation:</strong> Showcasing the onboarding journey.</li>
-  </ul>
+  <h4>Example: AWS Ground Station Integration</h4>
+  <pre><code>import boto3
 
-  <h2>Judging Criteria</h2>
-  <ul>
-    <li><strong>Functionality (40%):</strong> Does the onboarding flow work smoothly?</li>
-    <li><strong>Innovation (20%):</strong> How creative is the AutoGuided approach?</li>
-    <li><strong>Technical Implementation (20%):</strong> Does it effectively support onboarding?</li>
-    <li><strong>Presentation & Demo (20%):</strong> Does it clearly showcase the onboarding process?</li>
-  </ul>
+client = boto3.client('groundstation', region_name='us-west-2')
+
+response = client.list_dataflow_endpoint_groups()
+
+for endpoint_group in response['dataflowEndpointGroupList']:
+    print(endpoint_group['dataflowEndpointGroupId'])</code></pre>
+
+  <h4>Example: Carbon Model Deployment with AWS SageMaker</h4>
+  <pre><code>aws sagemaker create-model \
+    --model-name my-model \
+    --primary-container Image=123.dkr.ecr.us-west-2.amazonaws.com/my-container-image</code></pre>
+
+  <h4>Example: Onboarding Dashboard Setup with AWS QuickSight</h4>
+  <pre><code>{
+  "Name": "MyDashboard",
+  "SourceEntity": {
+    "SourceTemplate": {
+      "DataSetReferences": [
+        {
+          "DataSetPlaceholder": {
+            "DataSetId": "my-dataset-id"
+          },
+          "DataSetArn": "arn:aws:quicksight:us-west-2:123456789012:dataset/my-dataset-id"
+        }
+      ],
+      "Arn": "arn:aws:quicksight:us-west-2:123456789012:template/my-template-id"
+    }
+  },
+  "Permissions": [
+    {
+      "Principal": "arn:aws:iam::123456789012:root",
+      "Actions": [
+        "quicksight:DescribeDashboard",
+        "quicksight:ListDashboardVersions",
+        "quicksight:UpdateDashboardPermissions",
+        "quicksight:QueryDashboard",
+        "quicksight:UpdateDashboard",
+        "quicksight:DeleteDashboard",
+        "quicksight:UpdateDashboardPublishedVersion"
+      ]
+    }
+  ]
+}</code></pre>
+
+  <h4>Example: Image Processing Pipeline with AWS Step Functions</h4>
+  <pre><code>{
+  "Comment": "Image Processing Workflow",
+  "StartAt": "ProcessImage",
+  "States": {
+    "ProcessImage": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-west-2:123456789012:function:processImageFunction",
+      "End": true
+    }
+  }
+}</code></pre>
+
+  <h4>Example: Real-time Dashboard Monitoring with AWS CloudWatch</h4>
+  <pre><code>aws cloudwatch get-metric-data \
+    --metric-data-queries file://metric_queries.json</code></pre>
+
+  <p>I hope these code snippets help you in your AI DevOps journey with AWS services! Let me know if you need more assistance.</p>
+
+  <!-- (Rest of the content remains unchanged) -->
 </div>
-
-
 
 </body>
 </html>
