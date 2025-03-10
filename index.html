@@ -7,29 +7,53 @@
 <style>
   body {
     display: flex;
+    flex-direction: column; /* Default for mobile */
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
   }
+
+  @media (min-width: 768px) {
+    body {
+      flex-direction: row; /* Desktop layout */
+    }
+  }
+
   #menu {
     width: 200px;
     border-right: 1px solid #000;
     padding: 10px;
   }
+
   #content {
     flex-grow: 1;
-    padding: 10px;
+    padding: 20px;
+    max-width: 900px;
   }
+
   ul {
     list-style-type: none;
     padding: 0;
   }
+
   li {
     margin: 5px 0;
   }
+
   a {
     text-decoration: none;
     color: #000;
   }
+
   a:hover {
     text-decoration: underline;
+  }
+
+  h1, h2, h3, h4 {
+    color: #333;
+  }
+
+  p {
+    margin-bottom: 15px;
   }
 </style>
 </head>
@@ -38,80 +62,75 @@
   <h2>Files</h2>
   <ul id="files-list"></ul>
 </div>
+
 <div id="content">
   <h1>AutoGuided Onboarding WebApp for Carbon Footprint Reduction</h1>
-  <p>AGO: AutoGuided Onboarding for Carbon Footprint Reduction
-Challenge Statement:
-Individuals and businesses are increasingly seeking to understand and reduce their carbon footprint. However, the journey to carbon reduction can be complex and overwhelming.  The AGO (AutoGuided Onboarding) challenge is to develop a web application that provides a seamless and guided onboarding experience for users to understand their carbon footprint, leveraging satellite raster data and intelligent carbon modeling.  This application will empower users with personalized insights and recommendations through an intuitive chatbot, making carbon footprint reduction accessible and actionable via a truly AutoGuided Onboarding approach.
-Core Components & Development Tasks - Now Emphasizing AutoGuided Onboarding:
-We'll maintain the three key development areas but reframe them to highlight how they contribute to the AutoGuided Onboarding experience:
-1. Raster Data Foundation for AutoGuided Insights (Satellite Data & Preprocessing for Onboarding):
- * Goal: Provide the data foundation for the AutoGuided Onboarding experience by acquiring and processing satellite raster data that will inform carbon footprint insights.
- * Data Source (Same as before - Open/free data examples): Sentinel-2, Landsat.  Focus on vegetation indices like NDVI for MVP as a carbon proxy.
- * Data Processing Tasks - Supporting Onboarding:
-   * Data Acquisition (For Onboarding Context):  Automate the process of fetching relevant raster data so users experience a smooth and quick onboarding process without data complexity.
-   * Data Preprocessing (For Onboarding Clarity): Ensure data is processed to be easily interpretable and visually clear for users as they are onboarded to the concept of satellite data and carbon footprint analysis.
-   * Vegetation Index Calculation (NDVI - Onboarding Metric): NDVI serves as the initial, simple metric for onboarding users to understand the relationship between vegetation and carbon.
-   * Data Storage (Transparent to User): Data storage should be handled in the background, ensuring a seamless onboarding experience without technical hurdles for the user.  The user should be onboarded to the insights, not the data management.
-2. Intelligent Carbon Modeling for AutoGuided Understanding (Data Interpretation for Onboarding):
- * Goal: Develop a simplified yet informative carbon model that translates processed raster data into user-understandable carbon footprint metrics, central to the AutoGuided Onboarding process.
- * Model Approach (Simplified for Onboarding - Clarity is Key):
-   * Vegetation-Based Carbon Sequestration Model (Onboarding Focus): Use the vegetation model as an accessible and intuitive entry point to carbon footprint understanding for users new to the topic.
-   * Basic Model Logic (Simplified for Onboarding): Prioritize clarity over complexity in the model.  Focus on conveying the concept of carbon sequestration and its relationship to vegetation to onboard users effectively.
-   * Footprint Metric Output - Onboarding Metric Examples:  Output metrics that are easy to grasp and relevant for onboarding users to carbon concepts:
-     * "Vegetation Carbon Potential Index":  Instead of just "Potential Carbon Sequestration Area," use an index (e.g., 1-10 scale) to onboard users to a relative understanding of carbon potential.
-     * "Region's Green Index":  A more user-friendly term to onboard users to the idea of vegetation as a positive environmental factor.
-     * "Relative Carbon Footprint Indicator (Onboarding Focused)":  Frame comparisons (user area vs. regional average) as a way to onboard users to understand their context within a broader scale.
-   * Onboarding Narrative: The model's output should be framed in a narrative that helps onboard users to the idea of carbon footprint analysis.  "Let's see your region's Green Index..." is more onboarding-friendly than "Let's calculate your potential carbon sequestration area."
-3. Chatbot for AutoGuided Onboarding & Personalized Guidance (User Interaction as Onboarding Core):
- * Goal:  Create a chatbot interface as the primary guide for AutoGuided Onboarding.  The chatbot will lead users through understanding carbon insights and receiving personalized recommendations in a conversational and intuitive manner.
- * Chatbot Functionality - Focused on AutoGuided Onboarding Flow:
-   * Welcome & Onboarding Introduction: The chatbot initiates the onboarding process, clearly setting expectations and guiding the user from the very beginning.
-     * Chatbot: "Welcome to AGO! I'm your guide to understanding your region's carbon potential.  Let's start by..."
-   * Guided Area of Interest Definition (Onboarding Step-by-Step): The chatbot guides the user through defining their area of interest as the first step in the onboarding journey.
-     * Chatbot: "To begin, tell me about the area you're interested in. You can click on the map, enter an address, or draw a shape..."
-   * Carbon Footprint Explanation as Onboarding Content (Simplifying Complexity):  The chatbot onboards users to the carbon metrics by explaining them in simple, non-technical terms.
-     * Chatbot: "Okay, we've analyzed your area!  Your region's 'Green Index' is [value] out of 10.  This means [explain in simple terms what the index means, relating it back to vegetation and carbon potential].  Think of it as..." (Use analogies, simple comparisons).
-   * Personalized Recommendations as Onboarding Outcomes (Actionable Guidance): The chatbot onboards users to actionable steps by providing tailored recommendations that are directly relevant to their carbon insights.
-     * Chatbot: "Based on your region's Green Index, here are some ways you can contribute to a greener future: [Provide simple, actionable, and positive recommendations, framing them as part of the onboarding process to carbon reduction]."
-   * Onboarding Flow & Navigation (Chatbot as Navigator): The chatbot acts as the navigator for the entire onboarding flow, guiding users step-by-step from initial interaction to understanding insights and receiving recommendations. The flow becomes:
-     * Chatbot Welcome & Onboarding Start.
-     * Chatbot Guides Area Definition.
-     * Chatbot Explains Carbon Insights (Onboarding Content).
-     * Chatbot Provides Personalized Recommendations (Onboarding Outcome).
-     * Chatbot Encourages Further Exploration (Continued Onboarding).
-Web Application Framework (AGO User Interface - Onboarding Focused):
- * Framework Choice (Rapid Onboarding Development):  Choose frameworks that facilitate rapid development of a user-friendly and intuitive onboarding interface (Flask/Django, React/Vue.js/Vanilla JS).
- * Key UI Elements - Designed for Onboarding:
-   * Interactive Map (Onboarding Visual Aid): Display satellite data clearly on an interactive map to visually onboard users to the data and their area of interest. The map becomes a tool for visual onboarding.
-   * Prominent Chatbot Interface (Onboarding Guide): The chatbot should be central and immediately accessible in the UI, visually representing its role as the primary guide for onboarding.
-   * Clear Data Visualizations (Onboarding Clarity): Use simple, clear visualizations of the carbon metrics (indexes, scales, progress bars, easily understood charts) to onboard users to understanding the data without being overwhelmed.
-   * Step-by-Step Navigation (Onboarding Path): Design the UI with clear visual cues that guide users through the onboarding flow, mirroring the chatbot's guidance.
-Potential Technologies & Tools (Suggestions - Still Relevant for AGO):  Remain largely the same as previously suggested.
-Hackathon Focus & Deliverables - AGO MVP:
- * AGO MVP (AutoGuided Onboarding Minimum Viable Product): Focus on delivering a streamlined and intuitive AutoGuided Onboarding experience.  The MVP's success will be measured by how effectively it onboard users to carbon footprint understanding.
- * Key Deliverables (AGO Focused):
-   * Working AGO Web Application:  With a clear and functional AutoGuided Onboarding flow driven by the chatbot and data.
-   * Code Repository (AGO Documentation): Code documentation should emphasize the implementation of the AutoGuided Onboarding flow.
-   * Short Presentation/Demo (AGO Onboarding Showcase): The presentation should clearly demonstrate the AutoGuided Onboarding experience, highlighting how users are guided through the application and understand their carbon insights.  Focus on showcasing the onboarding journey.
-Bonus Features (AGO Enhancement - Further Onboarding Depth):  Bonus features should enhance the AutoGuided Onboarding experience:
- * More Interactive Chatbot Onboarding: Make the chatbot conversation even more interactive and personalized to enhance the onboarding process.
- * Visual Onboarding Tutorials:  Incorporate short visual tutorials within the web app to onboard users to specific features or concepts.
- * Progress Tracking for Onboarding:  Visually track the user's progress through the onboarding flow.
- * User Feedback on Onboarding:  Gather user feedback on the onboarding experience for iterative improvements.
-Judging Criteria - AGO Emphasis:
- * Functionality (40% - AGO Flow Focus): Does the AutoGuided Onboarding flow function smoothly and effectively? Is the chatbot guiding users appropriately?
- * Innovation & Creativity (20% - AGO Approach): How innovative and creative is the AutoGuided Onboarding approach?
- * Technical Implementation (20% - AGO Support): Does the technical implementation effectively support the AutoGuided Onboarding flow?
- * Presentation & Demo (20% - AGO Onboarding Showcase): Does the presentation effectively demonstrate the AutoGuided Onboarding experience and its value?
-Target Audience - AGO User Focus:  Still broadly relevant, but emphasize users who benefit from guided experiences:
- * Individuals New to Carbon Footprint Concepts:  AGO is designed for users who need a clear and guided introduction to carbon footprint understanding.
- * Users Seeking Actionable Guidance:  AGO provides not just information, but a guided path towards action.
-Team Roles - AGO Alignment: Remain the same, but team members should consider how their roles contribute to the overall AutoGuided Onboarding experience.
-Let's make carbon footprint reduction accessible and actionable through a truly outstanding AutoGuided Onboarding experience!  Good luck to all AGO challenge participants!</p>
+
+  <p>
+    <strong>AGO: AutoGuided Onboarding for Carbon Footprint Reduction</strong>
+    <br><br>
+    <strong>Challenge Statement:</strong> Individuals and businesses are increasingly seeking to understand and reduce their carbon footprint. However, the journey to carbon reduction can be complex and overwhelming.
+  </p>
+
+  <p>
+    The AGO (AutoGuided Onboarding) challenge is to develop a web application that provides a seamless and guided onboarding experience for users to understand their carbon footprint, leveraging satellite raster data and intelligent carbon modeling.
+  </p>
+
+  <h2>Core Components & Development Tasks</h2>
+  
+  <h3>1. Raster Data Foundation for AutoGuided Insights</h3>
+  <p>
+    <strong>Goal:</strong> Provide the data foundation for the AutoGuided Onboarding experience by acquiring and processing satellite raster data that will inform carbon footprint insights.
+  </p>
+  <ul>
+    <li><strong>Data Source:</strong> Sentinel-2, Landsat. Focus on vegetation indices like NDVI for MVP as a carbon proxy.</li>
+    <li><strong>Data Processing Tasks:</strong> Ensure easy interpretability for users.</li>
+    <li><strong>Vegetation Index Calculation:</strong> Use NDVI as a simple metric to introduce users to the carbon footprint concept.</li>
+  </ul>
+
+  <h3>2. Intelligent Carbon Modeling for AutoGuided Understanding</h3>
+  <p>
+    <strong>Goal:</strong> Develop a simplified yet informative carbon model that translates processed raster data into user-understandable carbon footprint metrics.
+  </p>
+  <ul>
+    <li><strong>Vegetation-Based Carbon Sequestration Model:</strong> A simple entry point for users to understand carbon impact.</li>
+    <li><strong>Output Metrics:</strong> Use user-friendly terms like “Green Index” and “Carbon Footprint Indicator.”</li>
+  </ul>
+
+  <h3>3. Chatbot for AutoGuided Onboarding & Personalized Guidance</h3>
+  <p>
+    <strong>Goal:</strong> Create a chatbot interface that guides users through carbon insights and recommendations in an intuitive manner.
+  </p>
+  <ul>
+    <li><strong>Guided Area of Interest Definition:</strong> Users define their area using a map or input fields.</li>
+    <li><strong>Carbon Footprint Explanation:</strong> The chatbot explains insights in simple, non-technical terms.</li>
+    <li><strong>Personalized Recommendations:</strong> Users receive tailored suggestions for reducing their carbon footprint.</li>
+  </ul>
+
+  <h2>Web Application Framework</h2>
+  <ul>
+    <li><strong>Framework Choice:</strong> Flask/Django for backend, React/Vue.js for frontend.</li>
+    <li><strong>Key UI Elements:</strong> Interactive map, chatbot interface, clear data visualizations.</li>
+  </ul>
+
+  <h2>Hackathon Focus & Deliverables</h2>
+  <ul>
+    <li><strong>AGO MVP:</strong> A functional onboarding experience with a chatbot and data integration.</li>
+    <li><strong>Code Repository:</strong> Documented code emphasizing the AutoGuided Onboarding process.</li>
+    <li><strong>Demo Presentation:</strong> Showcasing the onboarding journey.</li>
+  </ul>
+
+  <h2>Judging Criteria</h2>
+  <ul>
+    <li><strong>Functionality (40%):</strong> Does the onboarding flow work smoothly?</li>
+    <li><strong>Innovation (20%):</strong> How creative is the AutoGuided approach?</li>
+    <li><strong>Technical Implementation (20%):</strong> Does it effectively support onboarding?</li>
+    <li><strong>Presentation & Demo (20%):</strong> Does it clearly showcase the onboarding process?</li>
+  </ul>
+</div>
 
 <script>
-  const files =[
+  const files = [
     "Onboarding.html",
     "Dashboard.html", 
     "Carbon_model.ipynb",
@@ -129,5 +148,6 @@ Let's make carbon footprint reduction accessible and actionable through a truly 
     filesList.appendChild(listItem);
   });
 </script>
+
 </body>
 </html>
