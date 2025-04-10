@@ -140,14 +140,6 @@ This project includes the following components:
 
 ---
 
-## Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/<your-repo>.git
-cd carbon-footprint-app
-
----
 
 ## Development Requirements
 
@@ -179,6 +171,11 @@ To contribute to the development of the "CFP WebAppDevOps" project, you will nee
 Follow the steps below to set up your development environment:
 
 1. **Clone the repository.**
+
+```bash
+git clone https://github.com/<your-repo>.git
+cd carbon-footprint-app
+
 2. **Install necessary dependencies.**
 3. **Develop Frontend and Backend Components:** Follow the wireframe and mockup designs.
 4. **Integrate AI Models and Data Processing Modules.**
