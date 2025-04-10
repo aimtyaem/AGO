@@ -21,16 +21,16 @@ The AutoGuided Onboarding webApp (AGO) combines Azure OpenAI capabilities with s
 ## Project Structure  
 
 ```
-carbon-footprint-app/
+AGObot/
 ├── frontend/                      # Web interface (to be implemented)
 │   ├── pages/  
-│   │   ├── onboarding.html        # Initial setup flow  
-│   │   └── dashboard.html         # Analytics interface  
+│   │   ├── index.html        # Initial setup flow  
+│   │   └── setup.md         # Analytics interface  
 │   └── components/  
-│       └── carbon-calculator.js  
+│       └── index.js  
 ├── backend/                       # Current CLI implementation  
-│   ├── carbon_footprint_app.py    # Main application logic  
-│   ├── azure_integration.py       # AI service handlers  
+│   ├── ago.py    # Main application logic  
+│   ├── charts.py       # AI service handlers  
 │   └── data_models/               # Energy consumption schemas  
 ├── AutoSmallSat_Datasets/         # Future satellite integration  
 │   ├── aws_ground_station.ipynb   # Cloud connectivity  
