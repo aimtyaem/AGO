@@ -170,7 +170,7 @@ All contributors must adhere to:
 **Project Maintainer**  
 Ahmed Ibrahim Metawee  
 Email: [aimt16@hotmail.com](mailto:aimt16@hotmail.com)  
-GitHub: [@yourhandle](https://github.com/AGO)  
+GitHub: [@aimtyaem](https://github.com/aimtyaem)  
 
 ---
 
