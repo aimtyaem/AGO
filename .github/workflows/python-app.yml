@@ -1,0 +1,55 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest
+    - name: Azure OpenAI action
+  # You may pin to the exact commit or the version.
+  # uses: yuichielectric/azure-openai-action@1a7a752285be22410535d3901588754ed4f54c08
+      uses: yuichielectric/azure-openai-action@v1.0.1
+      with:
+    # The endpoint URL of Azure OpenAI Services
+     api_url: https://ago.openai.azure.com/
+    # The deployment ID of Azure OpenAI Services
+     deployment_id: gpt-4o
+    # The API key to run Azure OpenAI Services
+     api_key: 895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT
+    # The prompt to pass to the model
+     system_prompt: AGO chatbot
+    # The text to pass to the model
+     input_text: How to get recommendations for energy footprint? 
+          
