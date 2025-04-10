@@ -1,0 +1,69 @@
+{
+  "task": "Post-Onboarding Energy Analysis",
+  "data_input": {
+    "source_type": "uploaded_csv",
+    "fields": {
+      "store_id": "string",
+      "location": "string",
+      "monthly_kWh": "number",
+      "current_fixture_type": "string",
+      "proposed_fixture_type": "string",
+      "energy_cost_per_kWh": "number",
+      "maintenance_cost_annual": "number"
+    }
+  },
+  "interpretation": {
+    "calculations": [
+      {
+        "name": "annual_energy_consumption",
+        "formula": "sum(monthly_kWh) * 12"
+      },
+      {
+        "name": "led_energy_savings_percent",
+        "value": 0.37
+      },
+      {
+        "name": "annual_cost_savings",
+        "formula": "(annual_energy_consumption * energy_cost_per_kWh * led_energy_savings_percent) + maintenance_cost_annual"
+      },
+      {
+        "name": "emissions_reduction_kg",
+        "formula": "annual_energy_consumption * led_energy_savings_percent * 0.55"
+      }
+    ]
+  },
+  "visualizations": [
+    {
+      "type": "bar_chart",
+      "title": "Annual Energy Usage Before vs After LED",
+      "x_field": "location",
+      "y_fields": ["monthly_kWh", "monthly_kWh * (1 - led_energy_savings_percent)"],
+      "labels": ["Current Usage", "Projected LED Usage"]
+    },
+    {
+      "type": "line_chart",
+      "title": "Cost Savings Over 3 Years",
+      "x_values": ["Year 1", "Year 2", "Year 3"],
+      "y_values": [
+        "annual_cost_savings",
+        "annual_cost_savings * 2",
+        "annual_cost_savings * 3"
+      ]
+    },
+    {
+      "type": "pie_chart",
+      "title": "Emissions Reduction Distribution",
+      "segments": [
+        {
+          "label": "Reduced Emissions (kg CO2)",
+          "value": "emissions_reduction_kg"
+        },
+        {
+          "label": "Remaining Emissions",
+          "value": "annual_energy_consumption * 0.55 * (1 - led_energy_savings_percent)"
+        }
+      ]
+    }
+  ],
+  "output_format": "interactive_dashboard"
+}
