@@ -1,0 +1,42 @@
+{
+  "document_type": "Egyptian Energy Bill",
+  "source": "Egyptian Electricity Holding Company",
+  "regions_covered": ["Greater Cairo", "Alexandria", "Upper Egypt"],
+  "bill_structure": {
+    "fields": {
+      "customer_name": "string",
+      "account_number": "string",
+      "billing_period": "YYYY-MM-DD to YYYY-MM-DD",
+      "total_kWh": "number",
+      "total_amount_EGP": "number",
+      "meter_reading_start": "number",
+      "meter_reading_end": "number",
+      "tariff_type": "Residential | Commercial | Industrial",
+      "location_type": "Urban | Rural",
+      "operation_hours": "optional string (e.g., 8AM–10PM)"
+    }
+  },
+  "interpretation_rules": {
+    "night_usage_threshold": 0.2,
+    "industry_average_kWh_per_10000_sqft": 12250,
+    "flag_patterns": [
+      {
+        "condition": "total_kWh > 1.25 * industry_average_kWh_per_10000_sqft",
+        "alert": "Usage exceeds industry average by over 25%."
+      },
+      {
+        "condition": "night_usage_ratio > night_usage_threshold",
+        "alert": "High night-time energy use detected during non-operational hours."
+      }
+    ]
+  },
+  "optimization_suggestions": {
+    "high_night_usage": "Consider adjusting lighting schedules, especially for outdoor signage or security lights.",
+    "high_overall_usage": "Recommend conducting a lighting audit and considering an LED retrofit."
+  },
+  "units": {
+    "currency": "EGP",
+    "energy": "kWh",
+    "emissions_estimate_factor": "0.55 kg CO2 per kWh (Egypt grid)"
+  }
+}
