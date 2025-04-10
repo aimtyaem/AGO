@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sustainability AI Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2E7D32;
+            --secondary-color: #81C784;
+            --background: #F1F8E9;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background);
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .chat-messages {
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 70%;
+        }
+
+        .user-message {
+            background: var(--secondary-color);
+            margin-left: auto;
+        }
+
+        .system-message {
+            background: #E8F5E9;
+            margin-right: auto;
+        }
+
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .chart-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .code-block {
+            background: #F5F5F5;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .send-button:hover {
+            background: #1B5E20;
+        }
+
+        .thinking-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .dot-flashing {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #2E7D32;
+            animation: dotFlashing 1s infinite linear;
+        }
+
+        @keyframes dotFlashing {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Sustainability AI Assistant</h2>
+            <p>Upload energy bills and analyze carbon footprint</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages"></div>
+        
+        <div class="file-input-container">
+            <input type="file" id="fileUpload" class="hidden" accept=".txt,.csv,.json">
+            <button onclick="document.getElementById('fileUpload').click()">Upload Energy Bill</button>
+            <span id="fileName"></span>
+        </div>
+        <div class="input-container">
+            <input type="text" 
+                   class="chat-input" 
+                   id="userInput" 
+                   placeholder="Type your sustainability question...">
+            <button class="send-button" onclick="handleUserInput()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Azure OpenAI Configuration
+        const API_ENDPOINT = "https://ago.openai.azure.com/openai/deployments/gpt-4o/chat/completions";
+        const API_KEY = "895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT";
+        const API_VERSION = "2025-01-01-preview";
+        const SYSTEM_PROMPT = "You are a Guided onboarding expert assistant specializing in carbon footprint reduction and energy footprint. Provide technical, compliance-focused recommendations with numerical calculations, charts and graphs.";
+
+        // Modified AI Response Function
+        async function getAIResponse(prompt) {
+            const url = `${API_ENDPOINT}?api-version=${API_VERSION}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'api-key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        messages: [
+                            { 
+                                role: "system", 
+                                content: SYSTEM_PROMPT 
+                            },
+                            { 
+                                role: "user", 
+                                content: prompt 
+                            }
+                        ],
+                        max_tokens: 4096,
+                        temperature: 1.0,
+                        top_p: 1.0
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+
+            } catch (error) {
+                console.error('API Call Failed:', error);
+                return "Error processing request. Please try again.";
+            }
+        }
+
+        // Updated handler function
+        async function handleUserInput() {
+            const inputField = document.getElementById('userInput');
+            const question = inputField.value.trim();
+            
+            if (!question) return;
+            
+            inputField.value = '';
+            addMessage(question, true);
+            
+            const thinkingId = addThinkingIndicator();
+            
+            try {
+                const response = await getAIResponse(question);
+                removeThinkingIndicator(thinkingId);
+                addMessage(response);
+                
+                // Render charts if response contains data
+                if(response.includes('chart')) renderCharts();
+                
+            } catch (error) {
+                removeThinkingIndicator(thinkingId);
+                addMessage("Failed to get response. Please try again.");
+            }
+        }
+
+        // Modified file upload handler
+        async function handleFileUpload(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const content = e.target.result;
+                addMessage(`📁 Uploaded file: ${file.name}`, true);
+                
+                const prompt = `Analyze this energy bill data: ${content}
+                Provide: 
+                1. Carbon footprint calculation 
+                2. Cost-saving recommendations
+                3. Visualizations`;
+                
+                const thinkingId = addThinkingIndicator();
+                
+                try {
+                    const analysis = await getAIResponse(prompt);
+                    removeThinkingIndicator(thinkingId);
+                    addMessage(analysis);
+                    renderCharts();
+                } catch (error) {
+                    removeThinkingIndicator(thinkingId);
+                    addMessage("Analysis failed. Please try again.");
+                }
+            };
+            reader.readAsText(file);
+        }
+                
+                // Render charts
+                renderCharts();
+            };
+            reader.readAsText(file);
+        }
+
+        function renderCharts() {
+            // Energy Consumption Chart
+            new Chart(document.getElementById('consumptionChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                    datasets: [{
+                        label: 'Energy Consumption (kWh)',
+                        data: [1200, 1900, 3000, 2500],
+                        backgroundColor: '#81C784'
+                    }]
+                }
+            });
+
+            // Scope 1 Emissions Chart
+            new Chart(document.getElementById('scope1Chart'), {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2021', '2022', '2023'],
+                    datasets: [{
+                        label: 'Scope 1 Emissions',
+                        data: [45, 40, 35, 30],
+                        borderColor: '#2E7D32'
+                    }]
+                }
+            });
+        }
+
+        // Event Listeners
+        fileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFileUpload(file);
+        });
+
+        // Initial message
+        addMessage("Welcome! Upload an energy bill to start analysis.");
+        async function handleUserInput() {
+            const inputField = document.getElementById('userInput');
+            const question = inputField.value.trim();
+            
+            if (!question) return;
+            
+            // Clear input
+            inputField.value = '';
+            
+            // Add user message
+            addMessage(question, true);
+            
+            // Add thinking indicator
+            const thinkingId = addThinkingIndicator();
+            
+            // Simulate AI processing
+            setTimeout(async () => {
+                // Remove thinking indicator
+                removeThinkingIndicator(thinkingId);
+                
+                // Generate and add response
+                const response = await mockAIResponse(question);
+                addMessage(response);
+            }, 1500);
+        }
+
+        function addThinkingIndicator() {
+            const thinkingId = Date.now();
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message system-message thinking-indicator';
+            thinkingDiv.id = `thinking-${thinkingId}`;
+            thinkingDiv.innerHTML = `
+                <div class="dot-flashing"></div>
+                Analyzing your query...
+            `;
+            chatMessages.appendChild(thinkingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return thinkingId;
+        }
+
+        function removeThinkingIndicator(id) {
+            const element = document.getElementById(`thinking-${id}`);
+            if (element) element.remove();
+        }
+
+        // Update mock AI responses
+        async function mockAIResponse(prompt) {
+            // Simulated API call delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Enhanced simulated responses
+            const responses = {
+                'scope 1': `Scope 1 recommendations:
+                <div class="chart-container">
+                    <canvas id="scope1Chart"></canvas>
+                </div>`,
+                'scope 2': `Energy efficiency suggestions:
+                <ul class="recommendation-list">
+                    <li>LED lighting upgrades</li>
+                    <li>HVAC optimization</li>
+                    <li>Renewable energy contracts</li>
+                </ul>`,
+                'scope 3': `Supply chain improvements:
+                <table class="data-table">
+                    <tr><th>Initiative</th><th>Impact</th></tr>
+                    <tr><td>Supplier audits</td><td>15% reduction</td></tr>
+                    <tr><td>Logistics optimization</td><td>20% savings</td></tr>
+                </table>`
+            };
+
+            const lowerPrompt = prompt.toLowerCase();
+            for (const [key, response] of Object.entries(responses)) {
+                if (lowerPrompt.includes(key)) return response;
+            }
+            
+            return `Analysis complete. Recommendation: 
+                Implement smart sensors (ROI: 1.5 years)
+                <div class="chart-container">
+                    <canvas id="defaultChart"></canvas>
+                </div>`;
+        }
+
+        // Handle Enter key
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUserInput();
+        });
+    </script>
+</body>
+</html>
