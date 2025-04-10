@@ -1,6 +1,4 @@
-Below is the complete Markdown file code generated from your content. You can save this into a file (for example, `README.md`) and adjust sections as needed.
-
-```md
+# AGO
 # AutoGuided Onboarding WebApp for Carbon Footprint Reduction
 
 ## Background
