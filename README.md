@@ -175,7 +175,7 @@ Follow the steps below to set up your development environment:
 ```bash
 git clone https://github.com/<your-repo>.git
 cd carbon-footprint-app
-
+```
 2. **Install necessary dependencies.**
 3. **Develop Frontend and Backend Components:** Follow the wireframe and mockup designs.
 4. **Integrate AI Models and Data Processing Modules.**
