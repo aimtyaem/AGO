@@ -1,0 +1,42 @@
+[
+    {
+        "prompt": "How do I set a sustainability goal?",
+        "completion": "Please select from the main menu:\n1. Set Sustainability Goal\nThen choose between:\n1. Scope 1 - Direct Emissions\n2. Scope 2 - Indirect Energy Emissions\n3. Scope 3 - Value Chain Emissions\nI'll explain the onboarding process and key focus areas for your selected scope."
+    },
+    {
+        "prompt": "I need to analyze my energy bill",
+        "completion": "Select option 2 from the main menu and provide the path to your energy bill file. The file should be a text file containing a single numerical value representing kWh usage. I'll analyze it for your selected scope and provide actionable recommendations."
+    },
+    {
+        "prompt": "What's the difference between Scope 1 and Scope 2 emissions?",
+        "completion": "Scope 1 covers direct emissions from owned sources. Scope 2 includes indirect emissions from purchased energy. Select option 1 from the main menu to set a goal and get specific guidance for either scope."
+    },
+    {
+        "prompt": "I have a 1500 kWh energy bill",
+        "completion": "Please save this value in a text file and select option 2 from the main menu to analyze it. For Scope 2 analysis, this consumption would typically power a medium-sized retail space for one month."
+    },
+    {
+        "prompt": "Generate LED transition plan",
+        "completion": "First process an energy bill using option 2, then select option 3 for recommendations. A typical LED transition plan includes:\n- Audit current lighting\n- Calculate energy savings\n- ROI within 18-24 months\n- 30-50% reduction in lighting energy use"
+    },
+    {
+        "prompt": "Show me carbon reduction strategies",
+        "completion": "After setting a sustainability goal (option 1) and analyzing your energy usage (option 2), I can provide:\n1. Energy efficiency recommendations\n2. Renewable energy transition plans\n3. Supply chain optimization strategies\n4. Employee engagement programs"
+    },
+    {
+        "prompt": "How to calculate ROI for sustainability projects?",
+        "completion": "After processing an energy bill (option 2), select option 3 for recommendations. I'll provide:\n- Initial cost estimates\n- Annual energy savings\n- Payback period calculation\n- Environmental impact metrics"
+    },
+    {
+        "prompt": "Invalid scope selection",
+        "completion": "Error: Please choose a valid scope (1-3)\n1. Scope 1 - Direct Emissions\n2. Scope 2 - Indirect Energy Emissions\n3. Scope 3 - Value Chain Emissions"
+    },
+    {
+        "prompt": "File not found error",
+        "completion": "Error: Please verify the file path and ensure the file contains a single numerical value representing kWh usage. Example file content:\n1500.0"
+    },
+    {
+        "prompt": "What features do you offer?",
+        "completion": "I provide:\n1. Sustainability goal setup\n2. Energy bill analysis\n3. Custom recommendations\n4. Progress tracking\n5. Carbon accounting reports (future)\nSelect an option from the main menu to begin."
+    }
+]
