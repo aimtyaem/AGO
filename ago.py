@@ -2,26 +2,40 @@ import os
 from openai import AzureOpenAI
 from datetime import datetime
 
-# Initialize Azure OpenAI client with ARM template configurations
+# Configuration from sample code
+endpoint = "https://ago.openai.azure.com"
+model_name = "gpt-4o"
+deployment = "gpt-4o"
+api_version = "2024-12-01-preview"
+subscription_key = ("895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT")  # From environment
+
+# Initialize client with sample configuration
 client = AzureOpenAI(
-    api_key=os.getenv("895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT"),
-    api_version="2024-10-01",  # Matches ARM template version
-    azure_endpoint=os.getenv("https://ago.openai.azure.com")
+    api_version=api_version,
+    azure_endpoint=endpoint,
+    api_key=subscription_key,
 )
 
-# Global state tracking
+# Application state and constants
 current_scope = None
 bill_analysis = None
 CONTENT_FILTER_MESSAGE = "Response blocked due to content policy violations. Please modify your input."
+SYSTEM_PROMPT = """You are a sustainability expert assistant specializing in carbon footprint reduction.
+Provide technical, compliance-focused recommendations with numerical calculations.
+Always consider RAI policies in responses."""
 
-def generate_response(prompt, deployment_name="gpt-4o"):
-    """Generate response using Azure OpenAI with RAI policy enforcement"""
+def generate_response(prompt):
+    """Enhanced response generation with sample parameters"""
     try:
         response = client.chat.completions.create(
-            model=deployment_name,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=200
+            model=deployment,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=1.0,
+            top_p=1.0,
+            max_tokens=4096
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -30,7 +44,7 @@ def generate_response(prompt, deployment_name="gpt-4o"):
         return f"API Error: {str(e)}"
 
 def display_menu():
-    """Display main menu for onboarding flow"""
+    """Main menu display"""
     print("\n=== Carbon Footprint Reduction Onboarding ===")
     print("1. Set Sustainability Goal")
     print("2. Process Energy Bill")
@@ -39,38 +53,37 @@ def display_menu():
     return input("Enter your choice: ")
 
 def scope_selection():
-    """Handle scope selection with RAI-protected input"""
+    """Scope selection with validation"""
     global current_scope
     print("\nSelect Scope Type:")
     print("1. Scope 1 - Direct Emissions")
     print("2. Scope 2 - Indirect Energy Emissions")
     print("3. Scope 3 - Value Chain Emissions")
-    
+
     scope_map = {
         "1": "Scope 1 - Direct Emissions",
         "2": "Scope 2 - Indirect Energy Emissions",
         "3": "Scope 3 - Value Chain Emissions"
     }
-    
+
     while True:
         choice = input("Choose scope (1-3): ")
         current_scope = scope_map.get(choice)
-        if current_scope:
-            return current_scope
-        print("Invalid scope selection. Please try again.")
+        if current_scope: return current_scope
+        print("Invalid selection. Please try again.")
 
 def handle_sustainability_goal():
-    """Generate scope-specific guidance with content filtering"""
+    """Scope-specific guidance generation"""
     selected_scope = scope_selection()
-    prompt = f"""As a sustainability consultant, explain the implementation process for {selected_scope} 
-    focusing on technical requirements, compliance factors, and monitoring strategies. 
-    Include 3-5 key performance indicators."""
-    
+    prompt = f"""As a sustainability consultant, explain the implementation process for {selected_scope}
+    including technical requirements, compliance factors, and monitoring strategies.
+    Include 3-5 key performance indicators with formulas."""
+
     response = generate_response(prompt)
     return response if response != CONTENT_FILTER_MESSAGE else "Content blocked in scope guidance"
 
 def process_energy_file(file_path):
-    """Secure file processing with error handling"""
+    """Secure file processing with validation"""
     try:
         with open(file_path, 'r') as f:
             kwh = float(f.read().strip())
@@ -80,53 +93,51 @@ def process_energy_file(file_path):
             'scope': current_scope
         }
     except Exception as e:
-        print(f"File processing error: {str(e)}")
+        print(f"File error: {str(e)}")
         return None
 
 def handle_energy_bill():
-    """RAI-compliant energy analysis workflow"""
+    """Energy analysis workflow"""
     global bill_analysis
-    print("\n=== Secure Energy Bill Upload ===")
+    print("\n=== Energy Bill Analysis ===")
     file_path = input("Enter path to energy bill file: ")
-    
+
     if not os.path.exists(file_path):
         return "File not found. Please check the path."
-    
+
     bill_data = process_energy_file(file_path)
-    if not bill_data:
-        return "Failed to process file"
-    
-    analysis_prompt = f"""Analyze energy consumption for {bill_data['scope']}:
+    if not bill_data: return "Failed to process file"
+
+    analysis_prompt = f"""Analyze {bill_data['scope']} energy consumption:
     - Date: {bill_data['timestamp']}
-    - Consumption: {bill_data['kwh']} kWh
+    - Usage: {bill_data['kwh']} kWh
     Provide technical analysis including:
-    1. Carbon footprint calculation
-    2. Industry comparison
+    1. CO2e calculation with formula
+    2. Industry benchmark comparison
     3. Three optimization strategies
-    Format as markdown with math expressions for calculations."""
-    
+    Format with markdown and LaTeX math."""
+
     bill_analysis = generate_response(analysis_prompt)
-    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked by content filters"
+    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"
 
 def handle_recommendations():
-    """Generate recommendations with compliance checks"""
-    if not bill_analysis:
-        return "Process an energy bill first"
-    
+    """Recommendation generation"""
+    if not bill_analysis: return "Process an energy bill first"
+
     recommendation_prompt = f"""Based on analysis: {bill_analysis}
-    Create a technical implementation plan including:
-    - Cost-benefit analysis using NPV calculations
-    - Timeline with milestones
-    - Risk assessment matrix
-    - Compliance considerations
-    Format as markdown table."""
-    
+    Create implementation plan including:
+    - NPV calculation with assumptions
+    - 12-month timeline
+    - Risk matrix
+    - Compliance checklist
+    Format as markdown table with emojis."""
+
     response = generate_response(recommendation_prompt)
-    return response if response != CONTENT_FILTER_MESSAGE else "Recommendation blocked by content policies"
+    return response if response != CONTENT_FILTER_MESSAGE else "Recommendation blocked"
 
 def main():
-    print("Welcome to Secure Carbon Footprint Onboarding")
-    print("AI Model: GPT-4o | Security: RAI Policies Enabled")
+    print("Welcome to Carbon Footprint Analysis")
+    print(f"AI Model: {model_name} | API: {api_version}")
     while True:
         choice = display_menu()
         if choice == "1":
@@ -138,7 +149,7 @@ def main():
             print("\n=== Technical Recommendations ===")
             print(handle_recommendations())
         elif choice == "4":
-            print("Secure session terminated. Goodbye!")
+            print("Session ended. Goodbye!")
             break
         else:
             print("Invalid choice. Please select 1-4.")
