@@ -65,25 +65,6 @@
             border-top: 1px solid #ddd;
         }
 
-        .chart-container {
-            margin: 20px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        .code-block {
-            background: #F5F5F5;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            margin: 10px 0;
-        }
-
-        .hidden {
-            display: none;
-        }
         .input-container {
             padding: 20px;
             border-top: 1px solid #ddd;
@@ -141,16 +122,11 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2>AGO chatbot</h2>
-            <p>Upload energy bills and analyze carbon footprint</p>
+            <p>Ask questions about energy efficiency and carbon footprint analysis</p>
         </div>
         
         <div class="chat-messages" id="chatMessages"></div>
         
-        <div class="file-input-container">
-            <input type="file" id="fileUpload" class="hidden" accept=".txt,.csv,.json">
-            <button onclick="document.getElementById('fileUpload').click()">Upload Energy Bill</button>
-            <span id="fileName"></span>
-        </div>
         <div class="input-container">
             <input type="text" 
                    class="chat-input" 
@@ -160,176 +136,70 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { AzureOpenAI } from "openai";
+        import dotenv from "dotenv";
+
+        dotenv.config();
+
         // Azure OpenAI Configuration
-        const API_ENDPOINT = "https://ago.openai.azure.com";
-        const API_KEY = "895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT";
-        const API_VERSION = "2025-01-01-preview";
-        const SYSTEM_PROMPT = "You are a Guided onboarding expert assistant specializing in carbon footprint reduction and energy footprint. Provide technical, compliance-focused recommendations with numerical calculations, charts and graphs.";
+        const endpoint = process.env["https://ago.openai.azure.com/"] || "https://ago.openai.azure.com/";
+        const apiKey = process.env["895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT"] || "<REPLACE_YOUR_API_KEY>";
+        const apiVersion = "2024-05-01-preview";
+        const deployment = "gpt-4o";
 
-        // Modified AI Response Function
-        async function getAIResponse(prompt) {
-            const url = `${API_ENDPOINT}?api-version=${API_VERSION}`;
-            
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'api-key': API_KEY
-                    },
-                    body: JSON.stringify({
-                        messages: [
-                            { 
-                                role: "system", 
-                                content: SYSTEM_PROMPT 
-                            },
-                            { 
-                                role: "user", 
-                                content: prompt 
-                            }
-                        ],
-                        max_tokens: 4096,
-                        temperature: 1.0,
-                        top_p: 1.0
-                    })
-                });
+        const client = new AzureOpenAI({ endpoint, apiKey, apiVersion, deployment });
 
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                return data.choices[0].message.content;
-
-            } catch (error) {
-                console.error('API Call Failed:', error);
-                return "Error processing request. Please try again.";
-            }
-        }
-
-        // Updated handler function
+        // Function to handle user input
         async function handleUserInput() {
             const inputField = document.getElementById('userInput');
             const question = inputField.value.trim();
-            
+
             if (!question) return;
-            
+
+            // Clear input and add user message
             inputField.value = '';
             addMessage(question, true);
-            
-            const thinkingId = addThinkingIndicator();
-            
-            try {
-                const response = await getAIResponse(question);
-                removeThinkingIndicator(thinkingId);
-                addMessage(response);
-                
-                // Render charts if response contains data
-                if(response.includes('chart')) renderCharts();
-                
-            } catch (error) {
-                removeThinkingIndicator(thinkingId);
-                addMessage("Failed to get response. Please try again.");
-            }
-        }
 
-        // Modified file upload handler
-        async function handleFileUpload(file) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const content = e.target.result;
-                addMessage(`📁 Uploaded file: ${file.name}`, true);
-                
-                const prompt = `Analyze this energy bill data: ${content}
-                Provide: 
-                1. Carbon footprint calculation 
-                2. Cost-saving recommendations
-                3. Visualizations`;
-                
-                const thinkingId = addThinkingIndicator();
-                
-                try {
-                    const analysis = await getAIResponse(prompt);
-                    removeThinkingIndicator(thinkingId);
-                    addMessage(analysis);
-                    renderCharts();
-                } catch (error) {
-                    removeThinkingIndicator(thinkingId);
-                    addMessage("Analysis failed. Please try again.");
-                }
-            };
-            reader.readAsText(file);
-        }
-                
-                // Render charts
-                renderCharts();
-            };
-            reader.readAsText(file);
-        }
-
-        function renderCharts() {
-            // Energy Consumption Chart
-            new Chart(document.getElementById('consumptionChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-                    datasets: [{
-                        label: 'Energy Consumption (kWh)',
-                        data: [1200, 1900, 3000, 2500],
-                        backgroundColor: '#81C784'
-                    }]
-                }
-            });
-
-            // Scope 1 Emissions Chart
-            new Chart(document.getElementById('scope1Chart'), {
-                type: 'line',
-                data: {
-                    labels: ['2020', '2021', '2022', '2023'],
-                    datasets: [{
-                        label: 'Scope 1 Emissions',
-                        data: [45, 40, 35, 30],
-                        borderColor: '#2E7D32'
-                    }]
-                }
-            });
-        }
-
-        // Event Listeners
-        fileUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFileUpload(file);
-        });
-
-        // Initial message
-        addMessage("Welcome! Upload an energy bill to start analysis.");
-        async function handleUserInput() {
-            const inputField = document.getElementById('userInput');
-            const question = inputField.value.trim();
-            
-            if (!question) return;
-            
-            // Clear input
-            inputField.value = '';
-            
-            // Add user message
-            addMessage(question, true);
-            
             // Add thinking indicator
             const thinkingId = addThinkingIndicator();
-            
-            // Simulate AI processing
-            setTimeout(async () => {
-                // Remove thinking indicator
+
+            try {
+                // Fetch AI response
+                const result = await client.chat.completions.create({
+                    messages: [
+                        { role: "system", content: "You are an expert assistant specializing in sustainability and energy efficiency." },
+                        { role: "user", content: question }
+                    ],
+                    max_tokens: 800,
+                    temperature: 0.7,
+                    top_p: 0.95,
+                    frequency_penalty: 0,
+                    presence_penalty: 0
+                });
+
+                // Remove thinking indicator and display response
                 removeThinkingIndicator(thinkingId);
-                
-                // Generate and add response
-                const response = await mockAIResponse(question);
-                addMessage(response);
-            }, 1500);
+                addMessage(result.choices[0].message.content);
+            } catch (error) {
+                console.error("API Error:", error);
+                removeThinkingIndicator(thinkingId);
+                addMessage("Failed to get a response. Please try again.");
+            }
         }
 
+        // Function to add a message to the chat
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? "user-message" : "system-message"}`;
+            messageDiv.textContent = content;
+
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to add a thinking indicator
         function addThinkingIndicator() {
             const thinkingId = Date.now();
             const thinkingDiv = document.createElement('div');
@@ -337,59 +207,21 @@
             thinkingDiv.id = `thinking-${thinkingId}`;
             thinkingDiv.innerHTML = `
                 <div class="dot-flashing"></div>
-                Analyzing your query...
+                Thinking...
             `;
+
+            const chatMessages = document.getElementById('chatMessages');
             chatMessages.appendChild(thinkingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+
             return thinkingId;
         }
 
+        // Function to remove a thinking indicator
         function removeThinkingIndicator(id) {
             const element = document.getElementById(`thinking-${id}`);
             if (element) element.remove();
         }
-
-        // Update mock AI responses
-        async function mockAIResponse(prompt) {
-            // Simulated API call delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Enhanced simulated responses
-            const responses = {
-                'scope 1': `Scope 1 recommendations:
-                <div class="chart-container">
-                    <canvas id="scope1Chart"></canvas>
-                </div>`,
-                'scope 2': `Energy efficiency suggestions:
-                <ul class="recommendation-list">
-                    <li>LED lighting upgrades</li>
-                    <li>HVAC optimization</li>
-                    <li>Renewable energy contracts</li>
-                </ul>`,
-                'scope 3': `Supply chain improvements:
-                <table class="data-table">
-                    <tr><th>Initiative</th><th>Impact</th></tr>
-                    <tr><td>Supplier audits</td><td>15% reduction</td></tr>
-                    <tr><td>Logistics optimization</td><td>20% savings</td></tr>
-                </table>`
-            };
-
-            const lowerPrompt = prompt.toLowerCase();
-            for (const [key, response] of Object.entries(responses)) {
-                if (lowerPrompt.includes(key)) return response;
-            }
-            
-            return `Analysis complete. Recommendation: 
-                Implement smart sensors (ROI: 1.5 years)
-                <div class="chart-container">
-                    <canvas id="defaultChart"></canvas>
-                </div>`;
-        }
-
-        // Handle Enter key
-        document.getElementById('userInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleUserInput();
-        });
     </script>
 </body>
 </html>
