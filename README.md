@@ -140,6 +140,15 @@ This project includes the following components:
 
 ---
 
+## Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/<your-repo>.git
+cd carbon-footprint-app
+
+---
+
 ## Development Requirements
 
 To contribute to the development of the "CFP WebAppDevOps" project, you will need the following:
