@@ -1,124 +1,127 @@
 import os
+import json
 from openai import AzureOpenAI
 from datetime import datetime
 
-# Configuration from sample code
+# Configuration
 endpoint = "https://ago.openai.azure.com"
 model_name = "gpt-4o"
 deployment = "gpt-4o"
 api_version = "2024-12-01-preview"
-subscription_key = ("895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT")  # From environment
+subscription_key = "895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT"
 
-# Initialize client with sample configuration
+# Initialize client
 client = AzureOpenAI(
     api_version=api_version,
     azure_endpoint=endpoint,
     api_key=subscription_key,
 )
 
-# Application state and constants
+# Application state
 current_scope = None
 bill_analysis = None
-CONTENT_FILTER_MESSAGE = "Response blocked due to content policy violations. Please modify your input."
-SYSTEM_PROMPT = """You are a sustainability expert assistant specializing in carbon footprint reduction.
-Provide technical, compliance-focused recommendations with numerical calculations.
-Always consider RAI policies in responses."""
-
-def generate_response(prompt):
-    """Enhanced response generation with sample parameters"""
-    try:
-        response = client.chat.completions.create(
-            model=deployment,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=1.0,
-            top_p=1.0,
-            max_tokens=4096
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        if "content_filter" in str(e).lower():
-            return CONTENT_FILTER_MESSAGE
-        return f"API Error: {str(e)}"
-
-def display_menu():
-    """Main menu display"""
-    print("\n=== Carbon Footprint Reduction Onboarding ===")
-    print("1. Set Sustainability Goal")
-    print("2. Process Energy Bill")
-    print("3. View Recommendations")
-    print("4. Exit")
-    return input("Enter your choice: ")
-
-def scope_selection():
-    """Scope selection with validation"""
-    global current_scope
-    print("\nSelect Scope Type:")
-    print("1. Scope 1 - Direct Emissions")
-    print("2. Scope 2 - Indirect Energy Emissions")
-    print("3. Scope 3 - Value Chain Emissions")
-
-    scope_map = {
-        "1": "Scope 1 - Direct Emissions",
-        "2": "Scope 2 - Indirect Energy Emissions",
-        "3": "Scope 3 - Value Chain Emissions"
-    }
-
-    while True:
-        choice = input("Choose scope (1-3): ")
-        current_scope = scope_map.get(choice)
-        if current_scope: return current_scope
-        print("Invalid selection. Please try again.")
-
-def handle_sustainability_goal():
-    """Scope-specific guidance generation"""
-    selected_scope = scope_selection()
-    prompt = f"""As a sustainability consultant, explain the implementation process for {selected_scope}
-    including technical requirements, compliance factors, and monitoring strategies.
-    Include 3-5 key performance indicators with formulas."""
-
-    response = generate_response(prompt)
-    return response if response != CONTENT_FILTER_MESSAGE else "Content blocked in scope guidance"
+CONTENT_FILTER_MESSAGE = "Response blocked due to content policy violations."
+SYSTEM_PROMPT = """You are a sustainability expert specializing in Egyptian energy systems.
+Provide recommendations specific to Egypt's grid, tariffs, and regional conditions.
+Always reference Egyptian Electricity Holding Company (EEHC) standards."""
 
 def process_energy_file(file_path):
-    """Secure file processing with validation"""
+    """Process Egyptian energy bills with advanced validation"""
     try:
         with open(file_path, 'r') as f:
-            kwh = float(f.read().strip())
-        return {
-            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            'kwh': kwh,
-            'scope': current_scope
-        }
+            content = f.read()
+            
+            # Parse JSON with schema validation
+            bill_data = json.loads(content)
+            
+            if not isinstance(bill_data, dict):
+                raise ValueError("Invalid JSON structure - expected dictionary")
+                
+            # Extract required fields
+            fields = bill_data.get("bill_structure", {}).get("fields", {})
+            if "total_kWh" not in fields:
+                raise ValueError("Missing required total_kWh field")
+                
+            # Convert string values to actual numbers
+            try:
+                kwh = float(fields["total_kWh"])
+            except (ValueError, TypeError):
+                raise ValueError("total_kWh must be a numeric value")
+                
+            # Extract additional context
+            metadata = {
+                'tariff_type': fields.get("tariff_type", "Unknown"),
+                'location_type': fields.get("location_type", "Unknown"),
+                'billing_period': fields.get("billing_period", "Unknown"),
+                'source': bill_data.get("source", "Unknown provider")
+            }
+            
+            # Get interpretation rules
+            rules = bill_data.get("interpretation_rules", {})
+            
+            return {
+                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                'kwh': kwh,
+                'scope': current_scope,
+                'metadata': metadata,
+                'rules': rules,
+                'optimizations': bill_data.get("optimization_suggestions", {}),
+                'units': bill_data.get("units", {})
+            }
+            
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON format")
     except Exception as e:
-        print(f"File error: {str(e)}")
+        print(f"File processing error: {str(e)}")
         return None
 
 def handle_energy_bill():
-    """Energy analysis workflow"""
+    """Enhanced energy analysis for Egyptian bills"""
     global bill_analysis
-    print("\n=== Energy Bill Analysis ===")
-    file_path = input("Enter path to energy bill file: ")
+    print("\n=== Egyptian Energy Bill Analysis ===")
+    file_path = input("Enter path to energy bill file: ").strip()
 
     if not os.path.exists(file_path):
         return "File not found. Please check the path."
 
     bill_data = process_energy_file(file_path)
-    if not bill_data: return "Failed to process file"
+    if not bill_data:
+        return "Failed to process file. Ensure it matches Egyptian EEHC format."
 
-    analysis_prompt = f"""Analyze {bill_data['scope']} energy consumption:
-    - Date: {bill_data['timestamp']}
+    # Build context-aware prompt
+    context = f"""
+    Egyptian Energy Bill Context:
+    - Provider: {bill_data['metadata']['source']}
+    - Tariff Type: {bill_data['metadata']['tariff_type']}
+    - Location: {bill_data['metadata']['location_type']}
+    - Billing Period: {bill_data['metadata']['billing_period']}
+    - Emissions Factor: {bill_data['units'].get('emissions_estimate_factor', '0.55 kg CO2/kWh (Egypt default)')}
+    
+    Industry Benchmarks:
+    - Night Usage Threshold: {bill_data['rules'].get('night_usage_threshold', 0.2)}
+    - Average kWh/10k sqft: {bill_data['rules'].get('industry_average_kWh_per_10000_sqft', 12250)}
+    """
+
+    analysis_prompt = f"""Analyze this Egyptian {bill_data['scope']} energy consumption:
+    {context}
     - Usage: {bill_data['kwh']} kWh
-    Provide technical analysis including:
-    1. CO2e calculation with formula
-    2. Industry benchmark comparison
-    3. Three optimization strategies
-    Format with markdown and LaTeX math."""
+    - Date Processed: {bill_data['timestamp']}
+    
+    Provide:
+    1. CO2e calculation using Egyptian grid factor
+    2. Comparison to EEHC regional benchmarks
+    3. Three optimization strategies considering:
+       - Egyptian tariff structures
+       - {bill_data['metadata']['location_type']} location factors
+       - Time-of-use patterns
+    4. Flag any usage anomalies per EEHC standards
+    
+    Format with markdown tables and Egyptian-specific examples."""
 
     bill_analysis = generate_response(analysis_prompt)
     return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"
+
+# ... [rest of your original code remains the same] ...
 
 def handle_recommendations():
     """Recommendation generation"""
