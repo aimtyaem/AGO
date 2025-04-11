@@ -1,4 +1,5 @@
 # AGO  
+![AGO](img/ago.png)
 ## AutoGuided Onboarding WebApp for Carbon Footprint Reduction  
 
 ## Background  
@@ -134,7 +135,8 @@ echo "AZURE_OPENAI_ENDPOINT=your_endpoint_here" >> .env
 
 4. **Run CLI Application**  
 ```bash
-python backend/carbon_footprint_app.py
+python ago.py
+python vtracker.py
 ```
 
 ---
