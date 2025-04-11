@@ -30,24 +30,24 @@ def process_energy_file(file_path):
     try:
         with open(file_path, 'r') as f:
             content = f.read()
-            
+
             # Parse JSON with schema validation
             bill_data = json.loads(content)
-            
+
             if not isinstance(bill_data, dict):
                 raise ValueError("Invalid JSON structure - expected dictionary")
-                
+
             # Extract required fields
             fields = bill_data.get("bill_structure", {}).get("fields", {})
             if "total_kWh" not in fields:
                 raise ValueError("Missing required total_kWh field")
-                
+
             # Convert string values to actual numbers
             try:
                 kwh = float(fields["total_kWh"])
             except (ValueError, TypeError):
                 raise ValueError("total_kWh must be a numeric value")
-                
+
             # Extract additional context
             metadata = {
                 'tariff_type': fields.get("tariff_type", "Unknown"),
@@ -55,10 +55,10 @@ def process_energy_file(file_path):
                 'billing_period': fields.get("billing_period", "Unknown"),
                 'source': bill_data.get("source", "Unknown provider")
             }
-            
+
             # Get interpretation rules
             rules = bill_data.get("interpretation_rules", {})
-            
+
             return {
                 'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 'kwh': kwh,
@@ -68,12 +68,31 @@ def process_energy_file(file_path):
                 'optimizations': bill_data.get("optimization_suggestions", {}),
                 'units': bill_data.get("units", {})
             }
-            
+
     except json.JSONDecodeError:
         raise ValueError("Invalid JSON format")
     except Exception as e:
         print(f"File processing error: {str(e)}")
         return None
+# ... [previous code remains the same] ...
+
+def generate_response(user_prompt):
+    """Generate AI response with error handling and content filtering"""
+    try:
+        response = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        print(f"API Error: {str(e)}")
+        return CONTENT_FILTER_MESSAGE
 
 def handle_energy_bill():
     """Enhanced energy analysis for Egyptian bills"""
@@ -96,7 +115,7 @@ def handle_energy_bill():
     - Location: {bill_data['metadata']['location_type']}
     - Billing Period: {bill_data['metadata']['billing_period']}
     - Emissions Factor: {bill_data['units'].get('emissions_estimate_factor', '0.55 kg CO2/kWh (Egypt default)')}
-    
+
     Industry Benchmarks:
     - Night Usage Threshold: {bill_data['rules'].get('night_usage_threshold', 0.2)}
     - Average kWh/10k sqft: {bill_data['rules'].get('industry_average_kWh_per_10000_sqft', 12250)}
@@ -106,7 +125,7 @@ def handle_energy_bill():
     {context}
     - Usage: {bill_data['kwh']} kWh
     - Date Processed: {bill_data['timestamp']}
-    
+
     Provide:
     1. CO2e calculation using Egyptian grid factor
     2. Comparison to EEHC regional benchmarks
@@ -115,13 +134,30 @@ def handle_energy_bill():
        - {bill_data['metadata']['location_type']} location factors
        - Time-of-use patterns
     4. Flag any usage anomalies per EEHC standards
-    
+
     Format with markdown tables and Egyptian-specific examples."""
+    bill_analysis = generate_response(analysis_prompt)  # Now properly defined    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"def handle_sustainability_goal():
+    """Configure sustainability scope with validation"""
+    global current_scope
+    print("Available Scopes:")
+    print("1. Scope 1 (Direct emissions)")
+    print("2. Scope 2 (Electricity indirect emissions)")
+    print("3. Scope 3 (Value chain emissions)")
+    
+    choice = input("Select scope (1-3): ").strip()
+    scope_map = {
+        "1": "Scope 1 - Direct Emissions",
+        "2": "Scope 2 - Electricity Indirect",
+        "3": "Scope 3 - Value Chain"
+    }
+    
+    if choice in scope_map:
+        current_scope = scope_map[choice]
+        return f"Scope set to: {current_scope}"
+    else:
+        current_scope = "Not Specified"
+        return "Invalid scope selection - using default analysis"
 
-    bill_analysis = generate_response(analysis_prompt)
-    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"
-
-# ... [rest of your original code remains the same] ...
 
 def handle_recommendations():
     """Recommendation generation"""
@@ -138,11 +174,23 @@ def handle_recommendations():
     response = generate_response(recommendation_prompt)
     return response if response != CONTENT_FILTER_MESSAGE else "Recommendation blocked"
 
+
+
+
+def display_menu():
+    """Display main menu and get user choice"""
+    print("\nMain Menu:")
+    print("1. Configure Sustainability Scope")
+    print("2. Analyze Energy Bill")
+    print("3. Generate Recommendations")
+    print("4. Exit")
+    return input("Please select an option (1-4): ").strip()
+
 def main():
     print("Welcome to Carbon Footprint Analysis")
     print(f"AI Model: {model_name} | API: {api_version}")
     while True:
-        choice = display_menu()
+        choice = display_menu()  # Now properly defined
         if choice == "1":
             print("\n=== Scope Configuration ===")
             print(handle_sustainability_goal())
