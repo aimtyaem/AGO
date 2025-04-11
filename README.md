@@ -27,14 +27,12 @@ AGObot/
 │   │   ├── index.html        # Initial setup flow  
 │   │   └── setup.md         # Analytics interface  
 │   └── components/  
-│       └── index.js  
+│       └── energybill.json
+|.      └── impactchart.json
 ├── backend/                       # Current CLI implementation  
 │   ├── ago.py    # Main application logic  
-│   ├── charts.py       # AI service handlers  
-│   └── data_models/               # Energy consumption schemas  
-├── AutoSmallSat_Datasets/         # Future satellite integration  
-│   ├── aws_ground_station.ipynb   # Cloud connectivity  
-│   └── imagery_processing.ipynb   # Geospatial analysis  
+│   ├── vtracker.py       # AI service handlers  
+│   └── data_models/               # Energy consumption schemas    
 ├── docs/                          # Project documentation  
 └── tests/                         # Validation scripts  
 ```
@@ -88,7 +86,7 @@ This project combines:
    - Basic recommendation engine  
 
 2. **Web Interface Prototype**:  
-   Interactive Figma mockup available [here](#) (to be implemented)
+   Interactive mockup available [here](#) (to be implemented)
 
 ---
 
@@ -106,10 +104,10 @@ This project combines:
 | Category        | Requirements                          |
 |-----------------|---------------------------------------|
 | Core            | Python 3.10+, Azure OpenAI access     |
-| CLI Dependencies| openai, python-dotenv                 |
-| Web Components  | Flask, Gradio (future implementation) |
+| CLI Dependencies| openai, python                        |
+| Web Components  | AI Chat-based WebApp                  |
 | Data Science    | pandas, numpy, scikit-learn           |
-| DevOps          | Docker, GitHub Actions                |
+| DevOps          | Azure, GitHub Actions                 |
 
 ---
 
@@ -150,9 +148,9 @@ python backend/carbon_footprint_app.py
    - Develop Flask/Django backend  
    - Create React frontend  
 
-3. **Satellite Integration**  
-   - AWS Ground Station connectivity  
-   - Geospatial analysis pipeline  
+3. **OpenAI Integration**  
+   - Azure openAI service  
+   - GPT 4.0 model  
 
 ---
 
