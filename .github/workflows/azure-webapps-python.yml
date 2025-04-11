@@ -69,7 +69,7 @@ jobs:
     needs: build
     environment:
       name: 'Development'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: agochatbot.azurewebsites.net
 
     steps:
       - name: Download artifact from build job
@@ -82,5 +82,5 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ env.AZURE_AGOchatbot }}
+          app-name: 'AGOchatbot'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
