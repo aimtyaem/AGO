@@ -1,5 +1,5 @@
 # AGO  
-# AutoGuided Onboarding WebApp for Carbon Footprint Reduction  
+## AutoGuided Onboarding WebApp for Carbon Footprint Reduction  
 
 ## Background  
 
@@ -69,7 +69,7 @@ This project combines:
 +---------------------------------+
 | Web Dashboard                   |
 |---------------------------------|
-| Real-time Carbon Metrics         |
+| Real-time Carbon Metrics        |
 | AI Recommendations Panel        | 
 | Energy Cost Projections         |
 | Sustainability Progress Chart   |
@@ -86,7 +86,9 @@ This project combines:
    - Basic recommendation engine  
 
 2. **Web Interface Prototype**:  
-   Interactive mockup available [here](#) (to be implemented)
+   Interactive mockup available [here](http://aimtyaem.github.io/AGO) (to be implemented)
+
+   [AGO chatbot](https://aimtyaem.github.io/AGO/index.html) track and monitor mockup.
 
 ---
 
