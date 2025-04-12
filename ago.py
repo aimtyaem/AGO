@@ -3,7 +3,7 @@ import json
 from openai import AzureOpenAI
 from datetime import datetime
 
-# Configuration
+# Configuration - Replace with your actual credentials
 endpoint = "https://ago.openai.azure.com"
 model_name = "gpt-4o"
 deployment = "gpt-4o"
@@ -30,25 +30,20 @@ def process_energy_file(file_path):
     try:
         with open(file_path, 'r') as f:
             content = f.read()
-
-            # Parse JSON with schema validation
             bill_data = json.loads(content)
 
             if not isinstance(bill_data, dict):
                 raise ValueError("Invalid JSON structure - expected dictionary")
 
-            # Extract required fields
             fields = bill_data.get("bill_structure", {}).get("fields", {})
             if "total_kWh" not in fields:
                 raise ValueError("Missing required total_kWh field")
 
-            # Convert string values to actual numbers
             try:
                 kwh = float(fields["total_kWh"])
             except (ValueError, TypeError):
                 raise ValueError("total_kWh must be a numeric value")
 
-            # Extract additional context
             metadata = {
                 'tariff_type': fields.get("tariff_type", "Unknown"),
                 'location_type': fields.get("location_type", "Unknown"),
@@ -56,7 +51,6 @@ def process_energy_file(file_path):
                 'source': bill_data.get("source", "Unknown provider")
             }
 
-            # Get interpretation rules
             rules = bill_data.get("interpretation_rules", {})
 
             return {
@@ -74,10 +68,9 @@ def process_energy_file(file_path):
     except Exception as e:
         print(f"File processing error: {str(e)}")
         return None
-# ... [previous code remains the same] ...
 
 def generate_response(user_prompt):
-    """Generate AI response with error handling and content filtering"""
+    """Generate AI response with error handling"""
     try:
         response = client.chat.completions.create(
             model=deployment,
@@ -89,10 +82,31 @@ def generate_response(user_prompt):
             max_tokens=1000
         )
         return response.choices[0].message.content
-    
     except Exception as e:
         print(f"API Error: {str(e)}")
         return CONTENT_FILTER_MESSAGE
+
+def handle_sustainability_goal():
+    """Configure sustainability scope with validation"""
+    global current_scope
+    print("Available Scopes:")
+    print("1. Scope 1 (Direct emissions)")
+    print("2. Scope 2 (Electricity indirect emissions)")
+    print("3. Scope 3 (Value chain emissions)")
+    
+    choice = input("Select scope (1-3): ").strip()
+    scope_map = {
+        "1": "Scope 1 - Direct Emissions",
+        "2": "Scope 2 - Electricity Indirect",
+        "3": "Scope 3 - Value Chain"
+    }
+    
+    if choice in scope_map:
+        current_scope = scope_map[choice]
+        return f"Scope set to: {current_scope}"
+    else:
+        current_scope = "Not Specified"
+        return "Invalid scope selection - using default analysis"
 
 def handle_energy_bill():
     """Enhanced energy analysis for Egyptian bills"""
@@ -107,7 +121,6 @@ def handle_energy_bill():
     if not bill_data:
         return "Failed to process file. Ensure it matches Egyptian EEHC format."
 
-    # Build context-aware prompt
     context = f"""
     Egyptian Energy Bill Context:
     - Provider: {bill_data['metadata']['source']}
@@ -136,28 +149,9 @@ def handle_energy_bill():
     4. Flag any usage anomalies per EEHC standards
 
     Format with markdown tables and Egyptian-specific examples."""
-    bill_analysis = generate_response(analysis_prompt)  # Now properly defined    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"def handle_sustainability_goal():
-    """Configure sustainability scope with validation"""
-    global current_scope
-    print("Available Scopes:")
-    print("1. Scope 1 (Direct emissions)")
-    print("2. Scope 2 (Electricity indirect emissions)")
-    print("3. Scope 3 (Value chain emissions)")
-    
-    choice = input("Select scope (1-3): ").strip()
-    scope_map = {
-        "1": "Scope 1 - Direct Emissions",
-        "2": "Scope 2 - Electricity Indirect",
-        "3": "Scope 3 - Value Chain"
-    }
-    
-    if choice in scope_map:
-        current_scope = scope_map[choice]
-        return f"Scope set to: {current_scope}"
-    else:
-        current_scope = "Not Specified"
-        return "Invalid scope selection - using default analysis"
 
+    bill_analysis = generate_response(analysis_prompt)
+    return bill_analysis if bill_analysis != CONTENT_FILTER_MESSAGE else "Analysis blocked"
 
 def handle_recommendations():
     """Recommendation generation"""
@@ -174,9 +168,6 @@ def handle_recommendations():
     response = generate_response(recommendation_prompt)
     return response if response != CONTENT_FILTER_MESSAGE else "Recommendation blocked"
 
-
-
-
 def display_menu():
     """Display main menu and get user choice"""
     print("\nMain Menu:")
@@ -190,7 +181,7 @@ def main():
     print("Welcome to Carbon Footprint Analysis")
     print(f"AI Model: {model_name} | API: {api_version}")
     while True:
-        choice = display_menu()  # Now properly defined
+        choice = display_menu()
         if choice == "1":
             print("\n=== Scope Configuration ===")
             print(handle_sustainability_goal())
