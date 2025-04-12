@@ -16,15 +16,35 @@
         body {
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: var(--background);
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            background: var(--primary-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+
+        .page-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
         .container {
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 20px auto;
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 300px 2fr 1fr;
             gap: 20px;
         }
 
@@ -50,6 +70,17 @@
             padding: 12px;
             border-radius: 15px;
             max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .message strong {
+            font-weight: 600;
+            color: inherit;
+        }
+
+        .message em {
+            font-style: italic;
+            color: inherit;
         }
 
         .user-message {
@@ -75,6 +106,11 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
         }
 
         .visualization {
@@ -82,6 +118,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
         }
 
         .menu {
@@ -97,14 +134,42 @@
             background: var(--background);
             border-radius: 5px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #e0e0e0;
         }
 
         .file-input {
             margin: 10px 0;
         }
+
+        .thinking {
+            color: #666;
+            font-style: italic;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
+    <header class="page-header">
+        <img src="ago.png" class="logo" alt="AGO Logo">
+        <h1>AGO Chatbot</h1>
+    </header>
+
     <div class="container">
         <div class="menu">
             <div class="menu-item" onclick="showSection('goal')">🏁 Set Sustainability Goal</div>
@@ -116,124 +181,239 @@
         <div class="chat-container">
             <div class="chat-messages" id="chatMessages"></div>
             <div class="input-section">
-                <input type="text" id="userInput" placeholder="Type your question...">
+                <input type="text" id="userInput" placeholder="Type your question..." autocomplete="off">
                 <button onclick="sendMessage()">Send</button>
             </div>
         </div>
 
-        <div class="visualization">
+        <div class="visualization" id="visualization">
             <canvas id="co2Chart"></canvas>
             <div id="recommendations"></div>
         </div>
     </div>
 
-    <script src="integration.js">
-        
+    <script>
+        // API Configuration 
         const API_CONFIG = {
-            endpoint "https://aimt1-m8ht17kv-eastus2.openai.azure.com",
-            deployment: "gpt-4o",
-            apiVersion: "2024-12-01-preview",
-            subscriptionKey: "14eFAIyubmUq8a7BKLdevvXpxcAxS2ICQmEBwTcBE9kf40hPWOL8JQQJ99BCACHYHv6XJ3w3AAAAACOGsmr9"
+            endpoint: 'https://ago.openai.azure.com/openai/deployments/gpt-4o',
+            apiVersion: '2025-01-01-preview',
+            apiKey: '895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT' // Never expose this in production
         };
 
-        let currentScope = null;
-        let billAnalysis = null;
+        const SYSTEM_PROMPT = `You are an AI model designed to function as an interactive chatbot specializing in carbon footprint analysis and emission reduction strategies in the energy and information technology (IT) sectors. Your primary role is to assist users—such as sustainability analysts, energy managers, policymakers, and IT professionals—by providing informed, context-aware responses based on a comprehensive understanding of emissions sources, reduction technologies, and sector-specific best practices.`;
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const fileInput = document.getElementById('fileInput');
+        const visualizationPanel = document.getElementById('visualization');
         let chartInstance = null;
 
+        // Initialize the chat with welcome message
+        appendMessage("Welcome to the AGO Sustainability Chatbot! How can I assist you with your carbon footprint analysis today?", false);
+
+        // Function to append messages to the chat
         function appendMessage(content, isUser = false) {
-            const messagesDiv = document.getElementById('chatMessages');
             const message = document.createElement('div');
             message.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-            message.innerHTML = content;
-            messagesDiv.appendChild(message);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // Simple formatting for better readability
+            const formattedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+                .replace(/\n/g, '<br>'); // Line breaks
+            
+            message.innerHTML = formattedContent;
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
+        // Function to send message to the API
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            appendMessage(message, true);
+            userInput.value = '';
+            
+            // Show thinking indicator
+            const thinkingIndicator = document.createElement('div');
+            thinkingIndicator.className = 'message bot-message thinking';
+            thinkingIndicator.textContent = 'Analyzing your request...';
+            chatMessages.appendChild(thinkingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await generateResponse(message);
+                
+                // Remove thinking indicator
+                chatMessages.removeChild(thinkingIndicator);
+                
+                // Add bot response
+                appendMessage(response);
+                
+                // Show visualization panel if relevant
+                if (response.includes('chart') || response.includes('data')) {
+                    showVisualization();
+                }
+            } catch (error) {
+                chatMessages.removeChild(thinkingIndicator);
+                appendMessage(`<span class="error-message">Error: ${error.message}</span>`, false);
+                console.error('API Error:', error);
+            }
+        }
+
+        // Generate response from OpenAI API
         async function generateResponse(prompt) {
             try {
                 const response = await axios.post(
-                    `${API_CONFIG.endpoint}/openai/deployments/${API_CONFIG.deployment}/chat/completions?api-version=${API_CONFIG.apiVersion}`,
+                    `${API_CONFIG.endpoint}/chat/completions?api-version=${API_CONFIG.apiVersion}`,
                     {
                         messages: [
                             { role: "system", content: SYSTEM_PROMPT },
                             { role: "user", content: prompt }
                         ],
-                        temperature: 1.0,
-                        top_p: 1.0,
-                        max_tokens: 4096
+                        temperature: 0.7,
+                        max_tokens: 800
                     },
                     {
                         headers: {
                             'Content-Type': 'application/json',
-                            'api-key': API_CONFIG.subscriptionKey
+                            'api-key': API_CONFIG.apiKey
                         }
                     }
                 );
+
                 return response.data.choices[0].message.content.trim();
             } catch (error) {
-                return error.response?.data?.error?.message.includes('content filter') 
-                    ? CONTENT_FILTER_MESSAGE 
-                    : `API Error: ${error.message}`;
+                throw new Error('Failed to get response from the AI service. Please try again later.');
             }
         }
 
-        async function handleSustainabilityGoal() {
-            const scope = await selectScope();
-            const prompt = `As a sustainability consultant, explain ${scope} implementation...`;
-            const response = await generateResponse(prompt);
-            appendMessage(formatResponse(response));
-            updateChart([30, 40, 30]); // Example chart data
+        // Show different sections
+        function showSection(section) {
+            switch(section) {
+                case 'goal':
+                    handleSustainabilityGoal();
+                    break;
+                case 'bill':
+                    fileInput.click();
+                    break;
+                case 'recommendations':
+                    showRecommendations();
+                    break;
+                default:
+                    appendMessage("I'm not sure what you're looking for. Please try one of the menu options or ask me directly.", false);
+            }
         }
 
+        // Handle file upload for energy bills
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            appendMessage(`Processing energy bill: ${file.name}`, true);
+            
+            try {
+                // Simulate file processing - in a real app, you would parse the actual file
+                const analysis = await analyzeEnergyBill(file);
+                appendMessage(analysis);
+                updateChart([45, 30, 25]); // Example data
+                showVisualization();
+            } catch (error) {
+                appendMessage(`<span class="error-message">Error processing file: ${error.message}</span>`, false);
+            }
+        });
+
+        // Simulate energy bill analysis
+        async function analyzeEnergyBill(file) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(`Analysis of your energy bill shows:\n\n` +
+                           `- Total consumption: 1,250 kWh\n` +
+                           `- Estimated CO2 emissions: 0.75 metric tons\n` +
+                           `- Primary sources: Electricity (85%), Natural Gas (15%)\n\n` +
+                           `**Recommendation:** Consider switching to renewable energy providers to reduce your Scope 2 emissions by up to 40%.`);
+                }, 1500);
+            });
+        }
+
+        // Handle sustainability goal setting
+        async function handleSustainabilityGoal() {
+            appendMessage("Let's set your sustainability goals. Which scope are you focusing on?\n\n" +
+                         "1. Scope 1 (Direct emissions)\n" +
+                         "2. Scope 2 (Energy indirect emissions)\n" +
+                         "3. Scope 3 (Other indirect emissions)", false);
+        }
+
+        // Show recommendations
+        async function showRecommendations() {
+            appendMessage("Generating personalized recommendations...", false);
+            
+            try {
+                const response = await generateResponse("Provide 3 specific recommendations for reducing carbon footprint in IT operations");
+                appendMessage(`**Recommendations:**\n\n${response}`);
+            } catch (error) {
+                appendMessage(`<span class="error-message">Error generating recommendations: ${error.message}</span>`, false);
+            }
+        }
+
+        // Update the chart with new data
         function updateChart(data) {
             const ctx = document.getElementById('co2Chart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
             
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Scope 1', 'Scope 2', 'Scope 3'],
                     datasets: [{
-                        label: 'CO2 Emissions (tons)',
+                        label: 'CO2 Emissions (metric tons)',
                         data: data,
-                        backgroundColor: ['#2E7D32', '#81C784', '#C8E6C9']
+                        backgroundColor: [
+                            'rgba(46, 125, 50, 0.7)',
+                            'rgba(129, 199, 132, 0.7)',
+                            'rgba(200, 230, 201, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 125, 50, 1)',
+                            'rgba(129, 199, 132, 1)',
+                            'rgba(200, 230, 201, 1)'
+                        ],
+                        borderWidth: 1
                     }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Metric Tons CO2e'
+                            }
+                        }
+                    }
                 }
             });
         }
 
-        function formatResponse(text) {
-            // Add formatting for math equations and markdown
-            return text.replace(/\$\$(.*?)\$\$/g, '<div class="math">$1</div>')
-                      .replace(/#{3}/g, '<h3>')
-                      .replace(/#{2}/g, '<h2>');
+        // Show visualization panel
+        function showVisualization() {
+            visualizationPanel.style.display = 'block';
         }
 
-        async function handleFileUpload(file) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const kwh = parseFloat(e.target.result);
-                const analysis = await generateAnalysis(kwh);
-                appendMessage(analysis);
-            };
-            reader.readAsText(file);
-        }
-
-        document.getElementById('fileInput').addEventListener('change', (e) => {
-            handleFileUpload(e.target.files[0]);
-        });
-
-        function showSection(section) {
-            if (section === 'bill') {
-                document.getElementById('fileInput').click();
+        // Handle Enter key press
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendMessage();
             }
-        }
-
-        // Initialization
-        const SYSTEM_PROMPT = `You are a sustainability expert...`;
-        const CONTENT_FILTER_MESSAGE = "Response blocked...";
-        
-        appendMessage("Welcome to Carbon Footprint Analysis! How can I help you today?", false);
+        });
     </script>
 </body>
 </html>
