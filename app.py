@@ -596,6 +596,72 @@ def get_frontend_settings():
         logging.exception("Exception in /frontend_settings")
         return jsonify({"error": str(e)}), 500
 
+@bp.route("/sustainability_goal", methods=["POST"])
+async def set_sustainability_goal():
+    try:
+        request_json = await request.get_json()
+        choice = request_json.get("choice", None)
+        if not choice:
+            return jsonify({"error": "Choice is required"}), 400
+
+        # Logic to process sustainability goal
+        # Example: Save to CosmosDB or process the choice
+        await cosmos_db_ready.wait()
+        if current_app.cosmos_conversation_client:
+            user_id = get_authenticated_user_details(request_headers=request.headers)["user_principal_id"]
+            await current_app.cosmos_conversation_client.create_message(uuid=str(uuid.uuid4()), user_id=user_id, input_message={"choice": choice})
+
+        return jsonify({"message": f"Sustainability goal '{choice}' set successfully."}), 200
+    except Exception as e:
+        logging.exception("Error in /sustainability_goal")
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/energy_bill", methods=["POST"])
+async def process_energy_bill():
+    try:
+        request_json = await request.get_json()
+        file_content = request_json.get("file_content", None)
+        if not file_content:
+            return jsonify({"error": "File content is required"}), 400
+
+        # Logic to process the energy bill
+        # Example: Parse the file and extract data
+        bill_data = {"total": 123.45, "usage": 678.90}  # Example parsed data
+
+        return jsonify({"message": "Energy bill processed successfully.", "data": bill_data}), 200
+    except Exception as e:
+        logging.exception("Error in /energy_bill")
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/recommendations", methods=["POST"])
+async def get_recommendations():
+    try:
+        request_json = await request.get_json()
+        analysis = request_json.get("analysis", None)
+        if not analysis:
+            return jsonify({"error": "Analysis data is required"}), 400
+
+        # Logic to generate recommendations
+        recommendations = ["Reduce usage during peak hours.", "Switch to solar energy."]  # Example recommendations
+
+        return jsonify({"recommendations": recommendations}), 200
+    except Exception as e:
+        logging.exception("Error in /recommendations")
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/vtracker_data", methods=["GET"])
+async def fetch_vtracker_data():
+    try:
+        # Logic to fetch vTracker data
+        vtracker_data = {"vehicle_id": "XYZ123", "status": "Active"}  # Example data
+
+        return jsonify(vtracker_data), 200
+    except Exception as e:
+        logging.exception("Error in /vtracker_data")
+        return jsonify({"error": str(e)}), 500
 
 ## Conversation History API ##
 @bp.route("/history/generate", methods=["POST"])
