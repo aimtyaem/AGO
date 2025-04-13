@@ -1,5 +1,5 @@
-// Base URL of the Flask API
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+// Base URL of the Azure WebApp API
+const API_BASE_URL = "https://agochatbot.azurewebsites.net";
 
 // Send sustainability goal choice to the backend
 async function setSustainabilityGoal(choice) {
