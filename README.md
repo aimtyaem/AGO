@@ -23,7 +23,7 @@ The AutoGuided Onboarding webApp (AGO) combines Azure OpenAI capabilities with s
 
 ```
 AGObot/
-├── frontend/ AGOchatbot     # WebApp interface (Mockup)
+├── frontend/ AGOchatbot      # WebApp interface (Mockup)
 │   ├── pages/  
 │   │   ├── index.html        # Mockup design   
 │   │   └── setup.md          # Setup instructions
@@ -39,8 +39,9 @@ AGObot/
 │   ├── ago.py                # Main application: Calc energybill.json & recommend 
 │   ├── vtracker.py           # Create graphs and charts from impactchart.json
 │   └── data_models/          # GPT 4.0    
-├── docs/  README.md          # Documentation  
-└── tests/ Google colab       # App validation and scripts fixing & degbugging   
+├── docs/  README.md          # Documentation         
+└── tests/ app.py             #Azure web services
+    └── integrations.js/      # Python data Integration 
 ```
 
 ---
