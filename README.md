@@ -41,7 +41,7 @@ AGObot/
 │   └── data_models/          # GPT 4.0    
 ├── docs/  README.md          # Documentation         
 └── tests/ app.py             #Azure web services
-    └── integrations.js/      # Python data Integration 
+    └── integrations.js/      # Applications Integration file
 ```
 
 ---
@@ -112,7 +112,7 @@ This project combines:
 
 | Category        | Requirements                          |
 |-----------------|---------------------------------------|
-| Core            | Python 3.10+, Azure OpenAI access     |
+| Core            | Python 3.9+, Azure OpenAI access     |
 | CLI Dependencies| openai, python                        |
 | Web Components  | AI Chat-based WebApp                  |
 | Data Science    | pandas, numpy, scikit-learn           |
@@ -124,8 +124,8 @@ This project combines:
 
 1. **Clone Repository**  
 ```bash
-git clone https://github.com/<your-repo>/carbon-footprint-app.git
-cd carbon-footprint-app
+git clone https://github.com/aimtyaem/AGO.git
+cd AGO
 ```
 
 2. **Install Dependencies**  
@@ -152,11 +152,13 @@ python vtracker.py
 ### Development Streams  
 1. **CLI Enhancements**  
    - Add database integration  
-   - Implement report generation  
+   - Implement report generation
+   - Establish a runtime environment for satellite data processing 
 
 2. **Web Interface**  
    - Develop Flask/Django backend  
    - Create React frontend  
+   - Develop an integration with Contoso Chat
 
 3. **OpenAI Integration**  
    - Azure openAI service  
