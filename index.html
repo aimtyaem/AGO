@@ -3,18 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Eco-Urban-Space · Interactive CBAM Simulator</title>
+  <title>Eco-Urban-Space · CBAM & MRV Live</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: #0f172a;
-    }
-    .chart-placeholder-enhanced {
-      background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
-      border-radius: 1rem;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,0.03), 0 8px 20px -6px rgba(0,0,0,0.1);
     }
     .tab-active {
       background: #059669 !important;
@@ -25,38 +20,58 @@
       border-color: #10b981 !important;
       background: rgba(16, 185, 129, 0.12) !important;
     }
-    /* Custom Slider Styling */
     input[type=range] {
       accent-color: #10b981;
+    }
+    .emissions-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+    }
+    .report-card {
+      transition: all 0.2s ease;
+    }
+    /* smooth animations */
+    .animate-pulse-slow {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
     }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-200 antialiased">
 
 <div class="min-h-screen">
-  <nav class="bg-slate-800 border-b border-slate-700 px-4 py-3 shadow-xl sticky top-0 z-20">
+  <!-- Navigation -->
+  <nav class="bg-slate-800/95 backdrop-blur border-b border-slate-700 px-4 py-3 shadow-xl sticky top-0 z-30">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
-        <div class="bg-emerald-600 p-2.5 rounded-xl shadow-lg">
+        <div class="bg-emerald-600 p-2.5 rounded-xl shadow-lg shadow-emerald-900/30">
           <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-bold tracking-tight">Eco-Urban-Space</h1>
-          <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">Interactive MRV & CBAM</p>
+          <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">Live MRV · CBAM · NDVI Sim</p>
         </div>
       </div>
-      <div class="flex gap-1.5 bg-slate-900/40 p-1 rounded-xl backdrop-blur-sm">
+      <div class="flex gap-1.5 bg-slate-900/60 p-1 rounded-xl backdrop-blur-sm border border-slate-700">
         <button data-tab="dashboard" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="bar-chart-3" class="inline-block w-4 h-4 ms-1"></i> لوحة البيانات
+          <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 ms-1"></i> لوحة القيادة
         </button>
         <button data-tab="simulator" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="sliders" class="inline-block w-4 h-4 ms-1"></i> المحاكي التفاعلي
+          <i data-lucide="sliders" class="inline-block w-4 h-4 ms-1"></i> محاكي التخضير
+        </button>
+        <button data-tab="compliance" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+          <i data-lucide="file-check" class="inline-block w-4 h-4 ms-1"></i> تقرير CBAM
         </button>
       </div>
     </div>
   </nav>
 
   <main class="max-w-7xl mx-auto p-4 md:p-6" id="app-content">
+    <!-- Dynamic content injected via JS -->
   </main>
 </div>
 
@@ -64,54 +79,63 @@
   (function(){
     "use strict";
     
-    // ----- DATA (Now includes NDVI and Base LST) -----
+    // ----- ENHANCED DATA (NDVI, baseLST, emissions) -----
     const cityData = [
-      { city: 'حلوان', ndbi: 0.65, ndvi: 0.12, baseLst: 42.5, sector: 'الأسمنت والحديد', emissions: 12500 },
-      { city: 'العاشر من رمضان', ndbi: 0.58, ndvi: 0.18, baseLst: 40.8, sector: 'الكيمياويات', emissions: 8400 },
-      { city: 'المحلة الكبرى', ndbi: 0.72, ndvi: 0.10, baseLst: 44.2, sector: 'الغزل والنسيج', emissions: 9200 },
-      { city: 'القاهرة الجديدة', ndbi: 0.40, ndvi: 0.45, baseLst: 38.5, sector: 'التكنولوجيا', emissions: 3100 }
+      { city: 'حلوان', ndbi: 0.65, ndvi: 0.12, baseLst: 42.5, sector: 'الأسمنت والحديد', emissions: 12500, country: 'مصر' },
+      { city: 'العاشر من رمضان', ndbi: 0.58, ndvi: 0.18, baseLst: 40.8, sector: 'الكيمياويات والمنسوجات', emissions: 8400, country: 'مصر' },
+      { city: 'المحلة الكبرى', ndbi: 0.72, ndvi: 0.10, baseLst: 44.2, sector: 'الغزل والنسيج', emissions: 9200, country: 'مصر' },
+      { city: 'القاهرة الجديدة', ndbi: 0.40, ndvi: 0.45, baseLst: 38.5, sector: 'التكنولوجيا والخدمات', emissions: 3100, country: 'مصر' }
     ];
 
-    let activeTab = 'simulator'; 
+    // Global state
+    let activeTab = 'dashboard';        // default dashboard
     let selectedCity = { ...cityData[0] };
-    let currentGreenBoost = 0; // % increase in vegetation
+    let currentGreenBoost = 0;           // % increase in vegetation (NDVI)
+    
+    // Additional state for compliance report ID
+    const generateReportId = () => Math.random().toString(36).substring(2, 10).toUpperCase() + '-CBAM';
 
-    // --- Core Calculation Logic ---
+    // --- Core calculation (consistent across all tabs) ---
     const calculateCbamLevy = (lst) => {
-      const baseLevy = 85; // € per ton
+      const baseLevy = 85; // €/ton
       const heatingFactor = Math.max(0, (Number(lst) - 35) * 1.2);
       return Number((baseLevy + heatingFactor).toFixed(2));
     };
 
-    const getDynamicMetrics = () => {
-      // Every 10% increase in vegetation (NDVI) reduces LST by 0.6 degrees (Simulated parameter)
-      const coolingEffect = (currentGreenBoost / 10) * 0.6;
-      const currentLstNum = Number((selectedCity.baseLst - coolingEffect).toFixed(1));
-      const currentLst = currentLstNum; // numeric
-      
-      // Calculate current UHI multiplier based on new LST
-      const uhiImpactNum = Math.max(0, ((currentLst - 35) * 1.5));
-      const uhiImpact = Number(uhiImpactNum.toFixed(1));
-      
-      // Calculate new CBAM Levy
+    const getDynamicMetricsForCity = (city, boost = currentGreenBoost) => {
+      const coolingEffect = (boost / 10) * 0.6;
+      const currentLst = Number((city.baseLst - coolingEffect).toFixed(1));
+      const uhiImpact = Math.max(0, ((currentLst - 35) * 1.5)).toFixed(1);
       const levy = calculateCbamLevy(currentLst);
+      const totalLevyCost = city.emissions * levy;
+      const baseCost = city.emissions * calculateCbamLevy(city.baseLst);
+      const savings = Math.max(0, baseCost - totalLevyCost);
       
-      // Calculate Financial Savings (Assuming Scope 2 cooling energy reduction)
-      const totalLevyCostNum = selectedCity.emissions * levy;
-      const baseLevyCostNum = selectedCity.emissions * calculateCbamLevy(selectedCity.baseLst);
-      const savingsNum = Math.max(0, baseLevyCostNum - totalLevyCostNum);
-
-      const totalLevyCost = totalLevyCostNum.toLocaleString('en-US', {maximumFractionDigits:0});
-      const savings = savingsNum.toLocaleString('en-US', {maximumFractionDigits:0});
-
-      return { currentLst, uhiImpact, levy, totalLevyCost, savings, totalLevyCostNum, savingsNum };
+      return { 
+        currentLst, 
+        uhiImpact: Number(uhiImpact), 
+        levy, 
+        totalLevyCost, 
+        savings,
+        baseCost,
+        effectiveNdvi: (city.ndvi + boost/100).toFixed(2)
+      };
     };
+
+    // For selected city
+    const getSelectedCityMetrics = () => getDynamicMetricsForCity(selectedCity);
+    
+    // For all cities (with global boost applied to each)
+    const getAllCitiesMetrics = () => cityData.map(city => getDynamicMetricsForCity(city, currentGreenBoost));
 
     const contentEl = document.getElementById('app-content');
     
+    // Render based on activeTab
     function renderAll() {
+      // Update tab active styles
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        if (btn.dataset.tab === activeTab) {
+        const tab = btn.dataset.tab;
+        if (tab === activeTab) {
           btn.classList.add('tab-active', 'bg-emerald-600', 'text-white');
           btn.classList.remove('text-slate-300', 'hover:bg-slate-700');
         } else {
@@ -122,308 +146,371 @@
 
       if (activeTab === 'dashboard') {
         renderDashboard();
-      } else {
+      } else if (activeTab === 'simulator') {
         renderSimulator();
+      } else if (activeTab === 'compliance') {
+        renderComplianceReport();
       }
       
       if (typeof lucide !== 'undefined') lucide.createIcons();
+      attachGlobalListeners();
     }
 
-    // --- DASHBOARD (Dynamic Strategic View) ---
+    // ----- DASHBOARD (Live Portfolio + Emissions Chart) -----
     function renderDashboard() {
-      // 1. Calculate aggregate data for the portfolio
-      const totalEmissions = cityData.reduce((sum, city) => sum + city.emissions, 0);
-      const avgLst = (cityData.reduce((sum, city) => sum + city.baseLst, 0) / cityData.length).toFixed(1);
+      const allMetrics = getAllCitiesMetrics();
+      const totalEmissions = cityData.reduce((sum, c) => sum + c.emissions, 0);
+      const avgBaseLst = (cityData.reduce((sum, c) => sum + c.baseLst, 0) / cityData.length).toFixed(1);
       
       let totalCbamExposure = 0;
+      let totalSavingsPotential = 0;
       
-      // 2. Generate HTML for each asset/city
-      const cityCardsHtml = cityData.map(city => {
-        const levy = calculateCbamLevy(city.baseLst);
-        const cost = city.emissions * levy;
-        totalCbamExposure += cost;
+      const cityCardsHtml = cityData.map((city, idx) => {
+        const met = allMetrics[idx];
+        totalCbamExposure += met.totalLevyCost;
+        totalSavingsPotential += met.savings;
         
-        // Risk assessment based on NDBI and LST
         let riskLevel = 'منخفض';
-        let riskColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-        
+        let riskColor = 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30';
         if (city.baseLst > 42 || city.ndbi > 0.6) {
           riskLevel = 'عالي';
-          riskColor = 'text-red-400 bg-red-400/10 border-red-400/20';
+          riskColor = 'text-red-400 bg-red-400/10 border-red-400/30';
         } else if (city.baseLst > 40) {
           riskLevel = 'متوسط';
-          riskColor = 'text-amber-400 bg-amber-400/10 border-amber-400/20';
+          riskColor = 'text-amber-400 bg-amber-400/10 border-amber-400/30';
         }
 
+        // Emissions bar width relative to max emissions (12500)
+        const maxEmission = 12500;
+        const barWidth = (city.emissions / maxEmission) * 100;
+        
         return `
-          <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-slate-600 transition shadow-sm">
-            <div>
-              <h4 class="font-bold text-lg flex items-center gap-2">${city.city} <span class="text-[10px] px-2 py-0.5 rounded border ${riskColor} font-bold">خطر ${riskLevel}</span></h4>
-              <p class="text-xs text-slate-400 mt-1">القطاع: ${city.sector}</p>
-            </div>
-            <div class="flex flex-wrap gap-4 md:gap-6 w-full md:w-auto text-sm">
-              <div>
-                <span class="block text-slate-500 text-[10px] uppercase font-bold">LST / NDVI</span>
-                <span class="font-mono">${city.baseLst}°C / ${city.ndvi}</span>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 hover:border-slate-500 transition shadow-md">
+            <div class="flex flex-wrap justify-between items-start gap-3">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h4 class="font-bold text-lg">${city.city}</h4>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full border ${riskColor} font-bold">خطر ${riskLevel}</span>
+                </div>
+                <p class="text-xs text-slate-400">${city.sector}</p>
+                <div class="mt-2 flex items-center gap-4 text-sm">
+                  <span><i data-lucide="thermometer" class="inline w-4 text-slate-500"></i> ${met.currentLst}°C</span>
+                  <span><i data-lucide="leaf" class="inline w-4 text-emerald-500"></i> NDVI ${met.effectiveNdvi}</span>
+                </div>
               </div>
-              <div>
-                <span class="block text-slate-500 text-[10px] uppercase font-bold">الانبعاثات</span>
-                <span class="font-mono text-slate-300">${city.emissions.toLocaleString()} tCO₂</span>
-              </div>
-              <div class="text-right">
-                <span class="block text-slate-500 text-[10px] uppercase font-bold">ضريبة CBAM المقدرة</span>
-                <span class="font-mono font-bold text-emerald-400">€${cost.toLocaleString('en-US', {maximumFractionDigits:0})}</span>
+              <div class="text-left min-w-[140px]">
+                <div class="text-xs text-slate-400 mb-1">الانبعاثات (tCO₂)</div>
+                <div class="w-full bg-slate-700 rounded-full h-2.5 mb-1">
+                  <div class="bg-gradient-to-r from-emerald-500 to-amber-500 h-2.5 rounded-full" style="width: ${barWidth}%"></div>
+                </div>
+                <div class="flex justify-between text-xs">
+                  <span>${city.emissions.toLocaleString()}</span>
+                  <span class="text-emerald-400 font-mono">€${met.totalLevyCost.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                </div>
               </div>
             </div>
           </div>
         `;
       }).join('');
 
-      // 3. Render Dashboard Layout
       const html = `
-        <div class="space-y-6 animate-in fade-in duration-500">
+        <div class="space-y-6 animate-in fade-in">
           <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> لوحة البيانات الاستراتيجية للمحفظة</h2>
-            <div class="bg-slate-800 px-4 py-2 rounded-lg text-sm border border-slate-700 font-mono shadow-sm flex items-center">
-              <i data-lucide="globe" class="w-4 h-4 ml-2 text-emerald-400"></i> تقرير التحقق الموحد (MRV)
+            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="globe" class="text-emerald-400"></i> لوحة المحفظة · MRV حي</h2>
+            <div class="bg-slate-800/80 px-4 py-2 rounded-full text-sm border border-slate-700 flex items-center gap-2">
+              <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> تحديث فوري
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-lg relative overflow-hidden">
-              <div class="absolute -left-4 -top-4 opacity-5"><i data-lucide="cloud-fog" class="w-32 h-32"></i></div>
-              <div class="flex justify-between items-start mb-2 relative z-10">
-                <p class="text-sm text-slate-400 font-bold">إجمالي البصمة الكربونية</p>
-                <div class="p-2 bg-blue-500/10 rounded-lg"><i data-lucide="factory" class="w-5 h-5 text-blue-400"></i></div>
-              </div>
-              <p class="text-3xl font-black font-mono relative z-10">${totalEmissions.toLocaleString()}</p>
-              <p class="text-xs text-slate-500 mt-1 relative z-10">النطاق 1 و 2 (tCO₂e)</p>
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-800/70 p-5 rounded-2xl border border-slate-700 shadow">
+              <p class="text-slate-400 text-sm mb-1">إجمالي الانبعاثات</p>
+              <p class="text-3xl font-black">${totalEmissions.toLocaleString()}</p>
+              <p class="text-xs text-slate-500">tCO₂e (نطاق 1+2)</p>
             </div>
-            
-            <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-lg relative overflow-hidden">
-              <div class="absolute -left-4 -top-4 opacity-5"><i data-lucide="thermometer" class="w-32 h-32"></i></div>
-              <div class="flex justify-between items-start mb-2 relative z-10">
-                <p class="text-sm text-slate-400 font-bold">متوسط الحرارة السطحية</p>
-                <div class="p-2 bg-amber-500/10 rounded-lg"><i data-lucide="thermometer-sun" class="w-5 h-5 text-amber-400"></i></div>
-              </div>
-              <p class="text-3xl font-black font-mono relative z-10">${avgLst}°C</p>
-              <p class="text-xs text-slate-500 mt-1 relative z-10">مؤشر الجزر الحرارية للمحفظة</p>
+            <div class="bg-slate-800/70 p-5 rounded-2xl border border-slate-700 shadow">
+              <p class="text-slate-400 text-sm mb-1">متوسط LST</p>
+              <p class="text-3xl font-black">${avgBaseLst}°C</p>
+              <p class="text-xs text-slate-500">مؤشر الجزيرة الحرارية</p>
             </div>
-
-            <div class="bg-gradient-to-br from-emerald-900/40 to-slate-800 p-5 rounded-2xl border border-emerald-500/40 shadow-lg relative overflow-hidden">
-              <div class="absolute -left-4 -top-4 opacity-10"><i data-lucide="euro" class="w-32 h-32"></i></div>
-              <div class="flex justify-between items-start mb-2 relative z-10">
-                <p class="text-sm text-emerald-400 font-bold">التعرض المالي لـ CBAM</p>
-                <div class="p-2 bg-emerald-500/20 rounded-lg"><i data-lucide="shield-alert" class="w-5 h-5 text-emerald-400"></i></div>
-              </div>
-              <p class="text-3xl font-black font-mono text-emerald-400 relative z-10">€${totalCbamExposure.toLocaleString('en-US', {maximumFractionDigits:0})}</p>
-              <p class="text-xs text-emerald-600 mt-1 relative z-10">إجمالي الالتزامات السنوية المقدرة</p>
+            <div class="bg-slate-800/70 p-5 rounded-2xl border border-slate-700 shadow">
+              <p class="text-slate-400 text-sm mb-1">التعرض CBAM</p>
+              <p class="text-3xl font-black text-emerald-400">€${totalCbamExposure.toLocaleString(undefined, {maximumFractionDigits:0})}</p>
+              <p class="text-xs text-slate-500">تقديري سنوي</p>
+            </div>
+            <div class="bg-emerald-900/30 p-5 rounded-2xl border border-emerald-500/30 shadow">
+              <p class="text-emerald-400 text-sm mb-1">وفورات التخضير المحتملة</p>
+              <p class="text-3xl font-black text-emerald-300">€${totalSavingsPotential.toLocaleString(undefined, {maximumFractionDigits:0})}</p>
+              <p class="text-xs text-emerald-500/80">عند زيادة NDVI 50%</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <div class="lg:col-span-2 space-y-4">
-              <h3 class="text-lg font-bold flex items-center gap-2 text-slate-300"><i data-lucide="map" class="text-slate-500 w-5 h-5"></i> تحليل الأصول مكانياً</h3>
+          <!-- City breakdown with emissions bars -->
+          <div class="mt-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center"><i data-lucide="map-pin" class="text-slate-400 ml-2"></i> تحليل الأصول والانبعاثات</h3>
+            <div class="space-y-3">
               ${cityCardsHtml}
             </div>
-            
-            <div class="bg-slate-800/60 p-6 rounded-2xl border border-slate-700 h-fit shadow-lg">
-              <h3 class="text-lg font-bold flex items-center gap-2 mb-6 text-slate-200"><i data-lucide="brain-circuit" class="text-purple-400"></i> التوجيه الاستراتيجي</h3>
-              <ul class="space-y-5">
-                <li class="flex gap-3 items-start">
-                  <div class="p-1.5 bg-emerald-500/10 rounded border border-emerald-500/20 shrink-0"><i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i></div>
-                  <div>
-                    <strong class="block text-sm text-slate-300">الجدوى المالية (Financial Viability)</strong>
-                    <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">توجيه الاستثمارات لرفع مؤشر NDVI سيؤدي إلى تبريد المنشآت، مما يخفض استهلاك طاقة النطاق 2 ويقلص تكاليف CBAM بشكل مباشر لتعظيم العائد الاستثماري (ROI).</p>
-                  </div>
-                </li>
-                <li class="flex gap-3 items-start">
-                  <div class="p-1.5 bg-blue-500/10 rounded border border-blue-500/20 shrink-0"><i data-lucide="server-cog" class="w-4 h-4 text-blue-400"></i></div>
-                  <div>
-                    <strong class="block text-sm text-slate-300">التكامل المستمر (CI/CD) لبيانات MRV</strong>
-                    <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">يجب ربط قراءات الأقمار الصناعية دورياً بمدخلات المصانع لضمان تحديث تقارير الاستدامة وتأمين استمرارية التنافسية (Competitive Advantage).</p>
-                  </div>
-                </li>
-                <li class="flex gap-3 items-start">
-                  <div class="p-1.5 bg-amber-500/10 rounded border border-amber-500/20 shrink-0"><i data-lucide="target" class="w-4 h-4 text-amber-400"></i></div>
-                  <div>
-                    <strong class="block text-sm text-slate-300">تخفيف المخاطر (Risk Mitigation)</strong>
-                    <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">المناطق ذات خطورة CBAM العالية تتطلب تحولاً مرناً (Agile Pivot) في بنيتها التحتية وتحديثاً سريعاً لاستراتيجية المشتريات.</p>
-                  </div>
-                </li>
-              </ul>
-              <hr class="border-slate-700 my-5">
-              <button onclick="document.querySelector('[data-tab=simulator]').click()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-lg text-sm font-bold transition-all flex justify-center items-center gap-2 shadow-lg shadow-emerald-900/20">
-                تشغيل محاكي التخضير (NDVI) <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              </button>
-            </div>
-            
+          </div>
+          
+          <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-700 text-sm flex justify-between items-center">
+            <span><i data-lucide="info" class="inline w-4 text-blue-400"></i> تأثير زيادة NDVI يظهر في المحاكي ويؤثر على تقارير الامتثال</span>
+            <button class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-xs font-bold transition" onclick="document.querySelector('[data-tab=simulator]').click()">
+              ⚡ تعديل التشجير
+            </button>
           </div>
         </div>
       `;
       contentEl.innerHTML = html;
     }
 
-    // --- INTERACTIVE SIMULATOR ---
+    // ----- SIMULATOR (Interactive NDVI + Live Update) -----
     function renderSimulator() {
-      // Do not reset the boost here so slider retains value across city changes
-      const metrics = getDynamicMetrics();
-
+      const metrics = getSelectedCityMetrics();
+      const tempDiff = (selectedCity.baseLst - metrics.currentLst).toFixed(1);
+      
       const html = `
-        <div class="max-w-5xl mx-auto space-y-6 animate-in zoom-in duration-300">
+        <div class="max-w-5xl mx-auto space-y-6">
           <div class="flex justify-between items-end">
-            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="leaf" class="text-emerald-400"></i> محاكي تحسين الغطاء النباتي (NDVI)</h2>
-            <span class="text-sm bg-blue-900/40 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50">بيانات الأقمار الصناعية النشطة</span>
+            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="leaf" class="text-emerald-400"></i> محاكي الغطاء النباتي (NDVI)</h2>
+            <span class="text-sm bg-indigo-900/40 text-indigo-300 px-3 py-1 rounded-full border border-indigo-700/50">Landsat 9 · Sentinel-2</span>
           </div>
           
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- City cards selector -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             ${cityData.map(city => `
-              <div data-city="${city.city}" class="city-selector cursor-pointer rounded-xl border-2 p-4 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-900/20' : 'border-slate-700 bg-slate-800/70'}">
-                <div class="flex justify-between items-center mb-1"><span class="font-bold text-lg">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="w-5 h-5 text-slate-400"></i></div>
-                <p class="text-xs text-slate-400 mb-2">${city.sector}</p>
-                <div class="flex justify-between text-[11px] bg-slate-900/50 p-2 rounded">
-                  <span>NDBI: <b class="text-red-400">${city.ndbi}</b></span>
-                  <span>NDVI: <b class="text-emerald-400">${city.ndvi}</b></span>
-                </div>
-                <div class="mt-3 text-[11px] text-slate-400">
-                  <div>Base LST: <b class="text-white">${city.baseLst}°C</b></div>
-                  <div>Emissions: <b class="text-white">${city.emissions.toLocaleString('en-US')} tCO2</b></div>
-                </div>
+              <div data-city="${city.city}" class="city-selector cursor-pointer rounded-xl border-2 p-3 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-900/20' : 'border-slate-700 bg-slate-800/70'}">
+                <div class="flex justify-between"><span class="font-bold">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="w-4 text-slate-400"></i></div>
+                <p class="text-[10px] text-slate-400 truncate">${city.sector}</p>
+                <div class="mt-2 flex justify-between text-[11px]"><span>NDBI ${city.ndbi}</span><span>NDVI ${city.ndvi}</span></div>
               </div>
             `).join('')}
           </div>
 
+          <!-- Slider Panel -->
           <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-2xl">
-            
-            <div class="mb-8 bg-slate-900/60 p-5 rounded-xl border border-slate-700">
-              <label class="flex justify-between items-center mb-4">
-                <span class="font-bold text-lg">استثمارات البنية التحتية الخضراء (زيادة NDVI)</span>
+            <div class="mb-8 bg-slate-900/80 p-5 rounded-xl border border-slate-700">
+              <div class="flex justify-between items-center mb-4">
+                <label class="font-bold text-lg flex items-center gap-2"><i data-lucide="sprout" class="text-emerald-400"></i> استثمار البنية الخضراء (زيادة NDVI %)</label>
                 <span id="boost-badge" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold">+${currentGreenBoost}%</span>
-              </label>
+              </div>
               <input type="range" id="ndvi-slider" min="0" max="50" step="1" value="${currentGreenBoost}" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
               <div class="flex justify-between text-xs text-slate-400 mt-2">
-                <span>الوضع الحالي (لا تدخل)</span>
-                <span>تخضير مكثف للمنشأة (+50%)</span>
+                <span>الوضع الحالي</span>
+                <span>تخضير مكثف (+50%)</span>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- LST & UHI -->
               <div class="space-y-4">
-                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 transition duration-300" id="lst-card">
-                  <p class="text-sm text-slate-400 mb-1 flex items-center gap-2"><i data-lucide="thermometer" class="w-4"></i> درجة حرارة السطح (LST)</p>
+                <div class="bg-slate-900/80 p-4 rounded-xl border" id="lst-card">
+                  <p class="text-sm text-slate-400 mb-1">🌡️ درجة حرارة السطح (LST)</p>
                   <div class="flex items-end gap-2">
-                    <p class="text-4xl font-mono" id="val-lst">${metrics.currentLst}°</p>
-                    <p class="text-sm text-emerald-400 mb-1" id="val-lst-diff"></p>
+                    <span class="text-4xl font-mono" id="val-lst">${metrics.currentLst}°</span>
+                    <span class="text-sm text-emerald-400 mb-1" id="val-lst-diff">${tempDiff > 0 ? `(-${tempDiff}°)` : ''}</span>
                   </div>
                 </div>
-                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
-                  <p class="text-sm text-slate-400 mb-1 flex items-center gap-2"><i data-lucide="sun" class="w-4"></i> معامل الجزيرة الحرارية</p>
+                <div class="bg-slate-900/80 p-4 rounded-xl border">
+                  <p class="text-sm text-slate-400 mb-1">☀️ معامل UHI</p>
                   <p class="text-2xl font-mono text-amber-400" id="val-uhi">+${metrics.uhiImpact}%</p>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border">
+                  <p class="text-sm text-slate-400 mb-1">🌿 NDVI المُحسَّن</p>
+                  <p class="text-2xl font-mono text-emerald-400" id="val-ndvi">${metrics.effectiveNdvi}</p>
                 </div>
               </div>
 
-              <div class="md:col-span-2 bg-emerald-900/20 p-6 rounded-xl border border-emerald-500/30 relative overflow-hidden">
+              <!-- CBAM Financial -->
+              <div class="lg:col-span-2 bg-emerald-900/20 p-6 rounded-xl border border-emerald-500/30 relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="euro" class="w-24 h-24"></i></div>
                 <div class="relative z-10">
-                  <p class="text-sm text-emerald-400 font-semibold mb-2">ضريبة الكربون المقدرة (CBAM)</p>
+                  <p class="text-sm text-emerald-400 font-semibold mb-2">ضريبة CBAM (€/طن)</p>
                   <div class="flex items-baseline gap-2">
                     <span class="text-5xl font-black text-white" id="val-levy">€${metrics.levy.toFixed(2)}</span>
-                    <span class="text-slate-400">/ للطن</span>
+                    <span class="text-slate-400">/طن</span>
                   </div>
-                  
                   <div class="mt-6 border-t border-emerald-500/20 pt-4 grid grid-cols-2 gap-4">
                     <div>
                       <p class="text-xs text-slate-400">إجمالي التكلفة السنوية</p>
-                      <p class="text-xl font-mono text-slate-200">€<span id="val-total">${metrics.totalLevyCost}</span></p>
+                      <p class="text-xl font-mono">€<span id="val-total">${metrics.totalLevyCost.toLocaleString(undefined, {maximumFractionDigits:0})}</span></p>
                     </div>
                     <div>
-                      <p class="text-xs text-slate-400">الوفورات المحققة من التشجير</p>
-                      <p class="text-xl font-mono text-emerald-400 font-bold">€<span id="val-savings">${metrics.savings}</span></p>
+                      <p class="text-xs text-slate-400">الوفورات من التشجير</p>
+                      <p class="text-xl font-mono text-emerald-400">€<span id="val-savings">${metrics.savings.toLocaleString(undefined, {maximumFractionDigits:0})}</span></p>
                     </div>
+                  </div>
+                  <div class="mt-4 bg-slate-900/60 p-3 rounded text-xs">
+                    <i data-lucide="trending-down" class="inline w-4 text-emerald-400"></i> 
+                    كل 10% زيادة في NDVI تخفض LST ≈ 0.6°C
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       `;
       contentEl.innerHTML = html;
-
-      // Attach interaction events
-      attachCitySelectionEvents();
-      attachSliderEvents();
+      attachSimulatorEvents();
     }
 
-    function attachCitySelectionEvents() {
+    function attachSimulatorEvents() {
       document.querySelectorAll('.city-selector').forEach(el => {
         el.addEventListener('click', () => {
           const cityName = el.dataset.city;
           const found = cityData.find(c => c.city === cityName);
           if (found) {
             selectedCity = { ...found };
-            renderAll(); // Re-render whole tab for new city
+            renderSimulator(); // re-render with new city, keep boost
+          }
+        });
+      });
+      
+      const slider = document.getElementById('ndvi-slider');
+      if (slider) {
+        slider.addEventListener('input', (e) => {
+          currentGreenBoost = parseInt(e.target.value, 10);
+          updateSimulatorNumbers();
+        });
+      }
+    }
+
+    function updateSimulatorNumbers() {
+      const metrics = getSelectedCityMetrics();
+      const tempDiff = (selectedCity.baseLst - metrics.currentLst).toFixed(1);
+      
+      const badge = document.getElementById('boost-badge');
+      if (badge) badge.innerText = `+${currentGreenBoost}%`;
+      
+      const lstEl = document.getElementById('val-lst');
+      if (lstEl) lstEl.innerText = `${metrics.currentLst}°`;
+      const diffEl = document.getElementById('val-lst-diff');
+      if (diffEl) diffEl.innerText = tempDiff > 0 ? `(-${tempDiff}°)` : '';
+      
+      const uhiEl = document.getElementById('val-uhi');
+      if (uhiEl) uhiEl.innerText = `+${metrics.uhiImpact}%`;
+      
+      const ndviEl = document.getElementById('val-ndvi');
+      if (ndviEl) ndviEl.innerText = metrics.effectiveNdvi;
+      
+      const levyEl = document.getElementById('val-levy');
+      if (levyEl) levyEl.innerText = `€${metrics.levy.toFixed(2)}`;
+      const totalEl = document.getElementById('val-total');
+      if (totalEl) totalEl.innerText = metrics.totalLevyCost.toLocaleString(undefined, {maximumFractionDigits:0});
+      const savingsEl = document.getElementById('val-savings');
+      if (savingsEl) savingsEl.innerText = metrics.savings.toLocaleString(undefined, {maximumFractionDigits:0});
+    }
+
+    // ----- COMPLIANCE REPORT (CBAM Preview with Live Data) -----
+    function renderComplianceReport() {
+      const metrics = getSelectedCityMetrics();
+      const reportId = generateReportId();
+      const uhiImpact = metrics.uhiImpact;
+      const tempDiff = (selectedCity.baseLst - metrics.currentLst).toFixed(1);
+      
+      const html = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-1 space-y-5">
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+              <h3 class="font-bold text-lg mb-4 flex items-center"><i data-lucide="map-pin" class="text-emerald-400 ml-2"></i> اختر المنشأة</h3>
+              <div class="space-y-2">
+                ${cityData.map(city => `
+                  <div data-city-card="${city.city}" class="city-report-card p-4 rounded-xl border transition cursor-pointer ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:bg-slate-700/60'}">
+                    <div class="flex justify-between"><span class="font-bold">${city.city}</span> ${selectedCity.city === city.city ? '<i data-lucide="check-circle" class="text-emerald-500 w-5"></i>' : ''}</div>
+                    <p class="text-xs text-slate-400">${city.sector}</p>
+                    <div class="flex gap-3 mt-2 text-xs"><span>LST ${city.baseLst}°C</span><span>NDVI ${city.ndvi}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="bg-amber-500/10 p-5 rounded-2xl border border-amber-500/30">
+              <div class="flex gap-3"><i data-lucide="alert-triangle" class="text-amber-500"></i><span class="font-bold text-amber-400">تنبيه CBAM</span></div>
+              <p class="text-xs mt-2">${selectedCity.city} تخضع لضريبة الكربون. تأثير الحرارة الحالي +${uhiImpact}% على استهلاك الطاقة.</p>
+              <p class="text-[10px] mt-3 text-slate-400">مستوى التحقق: Landsat 8/9 (عالية)</p>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2">
+            <div class="bg-white text-slate-900 p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden border">
+              <div class="absolute top-0 left-0 right-0 h-2 bg-emerald-600"></div>
+              <div class="flex flex-wrap justify-between items-start border-b pb-4 mb-6">
+                <div>
+                  <h2 class="text-xl md:text-2xl font-black">تقرير التحقق الفضائي (MRV)</h2>
+                  <p class="text-slate-500 text-xs">متوافق مع CBAM · الاتحاد الأوروبي</p>
+                </div>
+                <div class="border p-2 rounded text-left" dir="ltr">
+                  <p class="text-[10px] font-mono">ID: ${reportId}</p>
+                  <p class="text-[10px] font-mono">DATE: ${new Date().toISOString().slice(0,10)}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="space-y-3">
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">المنشأة:</span>
+                    <p class="text-lg font-bold">${selectedCity.city} · ${selectedCity.sector}</p>
+                  </div>
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">تأثير UHI:</span>
+                    <p class="text-lg font-bold text-red-600">+${uhiImpact}% (تبريد زائد)</p>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                    <span class="text-xs text-emerald-700 font-bold">رسوم CBAM (€/طن):</span>
+                    <p class="text-2xl font-black text-emerald-900">€${metrics.levy.toFixed(2)}</p>
+                  </div>
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">NDVI بعد التشجير:</span>
+                    <p class="font-bold">${metrics.effectiveNdvi}  (أساسي ${selectedCity.ndvi})</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-6">
+                <h3 class="font-bold border-r-4 border-emerald-600 pr-3 mb-2">تحليل المخاطر</h3>
+                <p class="text-sm leading-relaxed text-slate-700">
+                  بناءً على بيانات صيف 2025، تُظهر ${selectedCity.city} LST ${metrics.currentLst}°C (انخفاض ${tempDiff}° بفضل NDVI+${currentGreenBoost}%). 
+                  التكلفة السنوية المقدرة €${metrics.totalLevyCost.toLocaleString()}, مع وفورات محتملة €${metrics.savings.toLocaleString()}.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap justify-between items-center pt-4 border-t">
+                <div class="flex gap-3">
+                  <button class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2" onclick="alert('📄 جاري تحميل تقرير PDF')"><i data-lucide="download"></i> PDF</button>
+                  <button class="border px-5 py-2 rounded-lg text-sm">إرسال للمراجع</button>
+                </div>
+                <div class="text-emerald-700 font-bold flex items-center"><i data-lucide="shield-check"></i> مُتحقق فضائياً</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      contentEl.innerHTML = html;
+      
+      document.querySelectorAll('[data-city-card]').forEach(card => {
+        card.addEventListener('click', () => {
+          const city = card.dataset.cityCard;
+          const found = cityData.find(c => c.city === city);
+          if (found) {
+            selectedCity = { ...found };
+            renderComplianceReport();
           }
         });
       });
     }
 
-    function attachSliderEvents() {
-      const slider = document.getElementById('ndvi-slider');
-      if (!slider) return;
-      slider.addEventListener('input', (e) => {
-        currentGreenBoost = parseInt(e.target.value, 10);
-        updateSimulatorUI();
-      });
+    function attachGlobalListeners() {
+      // For any extra buttons that need to switch tabs (like in dashboard)
     }
 
-    function updateSimulatorUI() {
-      const metrics = getDynamicMetrics();
-      
-      // Update Badge
-      const badge = document.getElementById('boost-badge');
-      if (badge) badge.innerText = `+${currentGreenBoost}%`;
-      
-      // Update LST and diff
-      const lstEl = document.getElementById('val-lst');
-      if (lstEl) lstEl.innerText = `${metrics.currentLst}°`;
-      
-      const diffEl = document.getElementById('val-lst-diff');
-      const tempDiff = Number((selectedCity.baseLst - metrics.currentLst).toFixed(1));
-      if (diffEl) diffEl.innerText = tempDiff > 0 ? `(-${tempDiff}°C)` : '';
-
-      // Update UHI
-      const uhiEl = document.getElementById('val-uhi');
-      if (uhiEl) uhiEl.innerText = `+${metrics.uhiImpact}%`;
-      
-      // Update CBAM Levy
-      const levyEl = document.getElementById('val-levy');
-      if (levyEl) levyEl.innerText = `€${metrics.levy.toFixed(2)}`;
-      const totalEl = document.getElementById('val-total');
-      if (totalEl) totalEl.innerText = metrics.totalLevyCost;
-      const savingsEl = document.getElementById('val-savings');
-      if (savingsEl) savingsEl.innerText = metrics.savings;
-
-      // Add a subtle color pulse if there are savings
-      const lstCard = document.getElementById('lst-card');
-      if (lstCard) {
-        if (tempDiff > 0) {
-          lstCard.style.borderColor = '#10b981';
-          setTimeout(() => { if (lstCard) lstCard.style.borderColor = ''; }, 300);
-        } else {
-          lstCard.style.borderColor = '';
-        }
-      }
-    }
-
-    // Initialize logic
     function setupTabs() {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          if (btn.dataset.tab) {
-            activeTab = btn.dataset.tab;
+          const tab = btn.dataset.tab;
+          if (tab) {
+            activeTab = tab;
             renderAll();
           }
         });
