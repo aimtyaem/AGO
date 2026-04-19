@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eco-Urban-Space · CBAM & Sustainability Dashboard</title>
-  <!-- Tailwind + custom styles, interactive mockup of React features -->
+  <title>Eco-Urban-Space · Interactive CBAM Simulator</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons (mimic React lucide-react) -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* smooth transitions & custom placeholders */
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: #0f172a;
@@ -28,33 +25,24 @@
       border-color: #10b981 !important;
       background: rgba(16, 185, 129, 0.12) !important;
     }
-    .report-card {
-      transition: all 0.2s ease;
-    }
-    .separator img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    /* arabic support */
-    [dir="rtl"] {
-      text-align: right;
+    /* Custom Slider Styling */
+    input[type=range] {
+      accent-color: #10b981;
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-200 antialiased" dir="rtl">
+<body class="bg-slate-900 text-slate-200 antialiased">
 
 <div class="min-h-screen">
-  <!-- Navigation (matching React style) -->
   <nav class="bg-slate-800 border-b border-slate-700 px-4 py-3 shadow-xl sticky top-0 z-20">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
       <div class="flex items-center gap-3">
         <div class="bg-emerald-600 p-2.5 rounded-xl shadow-lg">
-          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+          <i data-lucide="satellite" class="w-6 h-6 text-white"></i>
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-bold tracking-tight">Eco-Urban-Space</h1>
-          <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">MRV & CBAM Intelligence</p>
+          <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">Interactive MRV & CBAM</p>
         </div>
       </div>
       <div class="flex gap-1.5 bg-slate-900/40 p-1 rounded-xl backdrop-blur-sm">
@@ -62,52 +50,63 @@
           <i data-lucide="bar-chart-3" class="inline-block w-4 h-4 ms-1"></i> لوحة البيانات
         </button>
         <button data-tab="simulator" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="thermometer-sun" class="inline-block w-4 h-4 ms-1"></i> المحاكي
-        </button>
-        <button data-tab="compliance" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="file-check" class="inline-block w-4 h-4 ms-1"></i> تقارير الامتثال
+          <i data-lucide="sliders" class="inline-block w-4 h-4 ms-1"></i> المحاكي التفاعلي
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Main container -->
   <main class="max-w-7xl mx-auto p-4 md:p-6" id="app-content">
-    <!-- Tabs will be rendered here via JS, fallback static will be replaced -->
-  </main>
+    </main>
 </div>
 
 <script>
   (function(){
     "use strict";
     
-    // ----- DATA (mirroring React initialData) -----
+    // ----- DATA (Now includes NDVI and Base LST) -----
     const cityData = [
-      { city: 'حلوان', ndbi: 0.65, greenSpace: 0.15, lst: 42.5, sector: 'الأسمنت والحديد', carbonIndex: 0.85 },
-      { city: 'العاشر من رمضان', ndbi: 0.58, greenSpace: 0.5, lst: 40.8, sector: 'الكيمياويات والمنسوجات', carbonIndex: 0.72 },
-      { city: 'المحلة الكبرى', ndbi: 0.72, greenSpace: 0.12, lst: 44.2, sector: 'الغزل والنسيج', carbonIndex: 0.91 },
-      { city: 'القاهرة الجديدة', ndbi: 0.40, greenSpace: 13.4, lst: 38.5, sector: 'خدمات وتكنولوجيا', carbonIndex: 0.35 }
+      { city: 'حلوان', ndbi: 0.65, ndvi: 0.12, baseLst: 42.5, sector: 'الأسمنت والحديد', emissions: 12500 },
+      { city: 'العاشر من رمضان', ndbi: 0.58, ndvi: 0.18, baseLst: 40.8, sector: 'الكيمياويات', emissions: 8400 },
+      { city: 'المحلة الكبرى', ndbi: 0.72, ndvi: 0.10, baseLst: 44.2, sector: 'الغزل والنسيج', emissions: 9200 },
+      { city: 'القاهرة الجديدة', ndbi: 0.40, ndvi: 0.45, baseLst: 38.5, sector: 'التكنولوجيا', emissions: 3100 }
     ];
 
-    // State
-    let activeTab = 'compliance';      // default to compliance (CBAM report)
+    let activeTab = 'simulator'; 
     let selectedCity = { ...cityData[0] };
+    let currentGreenBoost = 0; // % increase in vegetation
 
-    // Helper: CBAM levy calculation (matching React)
+    // --- Core Calculation Logic ---
     const calculateCbamLevy = (lst) => {
-      const baseLevy = 85;        // € per ton
-      const heatingFactor = (lst - 35) * 1.2;
+      const baseLevy = 85; // € per ton
+      const heatingFactor = Math.max(0, (lst - 35) * 1.2);
       return (baseLevy + heatingFactor).toFixed(2);
     };
 
-    // ----- Render functions -----
+    const getDynamicMetrics = () => {
+      // Every 10% increase in vegetation (NDVI) reduces LST by 0.6 degrees (Simulated parameter)
+      const coolingEffect = (currentGreenBoost / 10) * 0.6;
+      const currentLst = (selectedCity.baseLst - coolingEffect).toFixed(1);
+      
+      // Calculate current UHI multiplier based on new LST
+      const uhiImpact = Math.max(0, ((currentLst - 35) * 1.5)).toFixed(1);
+      
+      // Calculate new CBAM Levy
+      const levy = calculateCbamLevy(currentLst);
+      
+      // Calculate Financial Savings (Assuming Scope 2 cooling energy reduction)
+      const totalLevyCost = (selectedCity.emissions * levy).toLocaleString('en-US');
+      const baseLevyCost = (selectedCity.emissions * calculateCbamLevy(selectedCity.baseLst));
+      const savings = (baseLevyCost - (selectedCity.emissions * levy)).toLocaleString('en-US');
+
+      return { currentLst, uhiImpact, levy, totalLevyCost, savings };
+    };
+
     const contentEl = document.getElementById('app-content');
     
     function renderAll() {
-      // Update active tab styling
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        const tab = btn.dataset.tab;
-        if (tab === activeTab) {
+        if (btn.dataset.tab === activeTab) {
           btn.classList.add('tab-active', 'bg-emerald-600', 'text-white');
           btn.classList.remove('text-slate-300', 'hover:bg-slate-700');
         } else {
@@ -118,321 +117,189 @@
 
       if (activeTab === 'dashboard') {
         renderDashboard();
-      } else if (activeTab === 'simulator') {
-        renderSimulator();
       } else {
-        renderComplianceTab();
+        renderSimulator();
       }
       
-      // Re-init lucide icons after DOM update
-      if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // ------ DASHBOARD (enhanced old style with new mockups) ------
+    // --- DASHBOARD (Static representation) ---
     function renderDashboard() {
       const html = `
         <div class="space-y-6 animate-in fade-in duration-500">
           <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="leaf" class="text-emerald-400"></i> لوحة الاستدامة · مؤشرات آنية</h2>
-            <div class="bg-slate-800 px-4 py-2 rounded-full text-sm"><i data-lucide="calendar"></i> ربيع 2026</div>
+            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> لوحة البيانات الاستراتيجية</h2>
           </div>
-
-          <!-- Original dashboard style but updated with interactive cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Carbon Footprint Overview (enhanced with data) -->
-            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="bg-blue-500/20 p-2 rounded-lg"><i data-lucide="bar-chart-3" class="text-blue-400 w-7 h-7"></i></div>
-                <h3 class="text-xl font-bold">بصمة الكربون</h3>
-              </div>
-              <p class="text-slate-400 text-sm mb-4">انبعاثات النطاق 1،2،3 (طن CO₂e)</p>
-              <div class="chart-placeholder-enhanced p-4 flex flex-col items-center">
-                <div class="w-full h-40 flex items-end justify-around gap-2 px-2">
-                  <div class="flex flex-col items-center w-1/4"><div class="bg-cyan-500 w-full h-20 rounded-t-lg" style="height: 60px;"></div><span class="text-xs mt-2">النطاق 1</span><span class="font-bold">2.4k</span></div>
-                  <div class="flex flex-col items-center w-1/4"><div class="bg-emerald-500 w-full h-28 rounded-t-lg" style="height: 80px;"></div><span class="text-xs mt-2">النطاق 2</span><span class="font-bold">4.1k</span></div>
-                  <div class="flex flex-col items-center w-1/4"><div class="bg-amber-500 w-full h-36 rounded-t-lg" style="height: 110px;"></div><span class="text-xs mt-2">النطاق 3</span><span class="font-bold">9.8k</span></div>
-                </div>
-                <p class="text-xs text-slate-400 mt-2"><i data-lucide="info" class="inline w-3"></i> مقارنة بالعام الماضي -7%</p>
-              </div>
-              <div class="mt-3 text-sm border-t border-slate-700 pt-3 flex justify-between">
-                <span>🏭 الإجمالي: <span class="font-mono font-bold">16.3k طن</span></span>
-                <span class="text-emerald-400">▼ 5.2%</span>
-              </div>
-            </div>
-
-            <!-- Charts & Graphs (mock with interactive elements) -->
-            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="bg-purple-500/20 p-2 rounded-lg"><i data-lucide="trending-up" class="text-purple-400 w-7 h-7"></i></div>
-                <h3 class="text-xl font-bold">اتجاهات الانبعاثات</h3>
-              </div>
-              <p class="text-slate-400 text-sm mb-2">مقارنة بمعايير القطاع</p>
-              <div class="bg-slate-900/60 p-3 rounded-xl">
-                <div class="flex justify-between text-xs mb-1"><span>انبعاثاتك</span><span>المتوسط الصناعي</span></div>
-                <div class="h-3 w-full bg-slate-700 rounded-full overflow-hidden flex">
-                  <div class="bg-emerald-500 h-full" style="width: 68%"></div>
-                  <div class="bg-slate-500 h-full" style="width: 32%"></div>
-                </div>
-              </div>
-              <!-- Simple chart representation -->
-              <div class="mt-4 flex items-end h-28 gap-1">
-                <div class="flex-1 bg-emerald-500/60 h-16 rounded-t hover:bg-emerald-400 transition"></div>
-                <div class="flex-1 bg-emerald-500/60 h-20 rounded-t"></div>
-                <div class="flex-1 bg-emerald-500/60 h-14 rounded-t"></div>
-                <div class="flex-1 bg-emerald-500/60 h-24 rounded-t"></div>
-                <div class="flex-1 bg-emerald-500/60 h-16 rounded-t"></div>
-                <div class="flex-1 bg-emerald-500/60 h-20 rounded-t"></div>
-              </div>
-              <p class="text-xs text-slate-400 mt-3 flex items-center"><i data-lucide="download" class="w-3 me-1"></i> تحديث: بيانات Landsat 9</p>
-            </div>
-
-            <!-- Recommendations (interactive, linked to city) -->
-            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="bg-amber-500/20 p-2 rounded-lg"><i data-lucide="lightbulb" class="text-amber-400 w-7 h-7"></i></div>
-                <h3 class="text-xl font-bold">توصيات ذكية</h3>
-              </div>
-              <ul class="space-y-3">
-                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
-                  <i data-lucide="zap" class="text-yellow-400 shrink-0"></i>
-                  <div><span class="font-semibold">تحويل لإضاءة LED</span><p class="text-xs text-slate-400">عائد سنوي 10,000$ · سنتين استرداد</p></div>
-                </li>
-                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
-                  <i data-lucide="thermometer" class="text-blue-400 shrink-0"></i>
-                  <div><span class="font-semibold">تحسين HVAC</span><p class="text-xs text-slate-400">خفض 15% من استهلاك التبريد</p></div>
-                </li>
-                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
-                  <i data-lucide="truck" class="text-purple-400 shrink-0"></i>
-                  <div><span class="font-semibold">تعاقد مع موردين أخضر</span><p class="text-xs text-slate-400">خفض النطاق 3 بنسبة 12%</p></div>
-                </li>
-              </ul>
-              <button class="mt-4 w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600/30 transition">
-                <i data-lucide="sparkles" class="inline w-4"></i> توليد توصيات CBAM
-              </button>
-            </div>
-          </div>
-
-          <!-- Additional row: interactive spatial mockup (NDBI/Green space) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
-              <div class="flex gap-3 items-center"><i data-lucide="map" class="text-emerald-500"></i><h4 class="font-bold">مؤشر الكتلة المبنية (NDBI) للمدن</h4></div>
-              <div class="grid grid-cols-4 gap-2 mt-3">
-                ${cityData.map(c => `<div class="text-center p-2 bg-slate-900/50 rounded"><span class="block text-sm font-bold">${c.city}</span><span class="text-lg ${c.ndbi > 0.6 ? 'text-amber-400' : 'text-emerald-400'}">${c.ndbi.toFixed(2)}</span></div>`).join('')}
-              </div>
-            </div>
-            <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
-              <div class="flex gap-3 items-center"><i data-lucide="tree-pine" class="text-green-500"></i><h4 class="font-bold">المساحات الخضراء (كم²)</h4></div>
-              <div class="grid grid-cols-4 gap-2 mt-3">
-                ${cityData.map(c => `<div class="text-center p-2 bg-slate-900/50 rounded"><span class="block text-sm">${c.city}</span><span class="text-lg ${c.greenSpace < 1 ? 'text-red-400' : 'text-green-400'}">${c.greenSpace.toFixed(1)}</span></div>`).join('')}
-              </div>
-            </div>
+          <div class="bg-slate-800/80 rounded-2xl p-8 border border-slate-700 text-center shadow-xl">
+             <i data-lucide="satellite" class="w-16 h-16 text-slate-500 mx-auto mb-4"></i>
+             <h3 class="text-xl font-bold text-slate-300 mb-2">نظرة عامة على محفظة الأصول</h3>
+             <p class="text-slate-400 max-w-md mx-auto">يرجى الانتقال إلى (المحاكي التفاعلي) لاختبار تأثير إضافة الغطاء النباتي (NDVI) على ضريبة الكربون.</p>
           </div>
         </div>
       `;
       contentEl.innerHTML = html;
-      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // ------ SIMULATOR (CBAM & UHI interactive) ------
+    // --- INTERACTIVE SIMULATOR ---
     function renderSimulator() {
-      const levy = calculateCbamLevy(selectedCity.lst);
-      const uhiImpact = ((selectedCity.lst - 38) * 1.5).toFixed(1);
+      // Reset boost when rendering fresh
+      currentGreenBoost = 0; 
+      const metrics = getDynamicMetrics();
+
       const html = `
-        <div class="max-w-4xl mx-auto space-y-6 animate-in zoom-in duration-300">
-          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="thermometer-sun" class="text-orange-400"></i> محاكي تأثير CBAM والجزر الحرارية</h2>
+        <div class="max-w-5xl mx-auto space-y-6 animate-in zoom-in duration-300">
+          <div class="flex justify-between items-end">
+            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="leaf" class="text-emerald-400"></i> محاكي تحسين الغطاء النباتي (NDVI)</h2>
+            <span class="text-sm bg-blue-900/40 text-blue-300 px-3 py-1 rounded-full border border-blue-700/50">بيانات الأقمار الصناعية النشطة</span>
+          </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             ${cityData.map(city => `
-              <div class="city-selector cursor-pointer rounded-xl border-2 p-5 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/70'}" data-city="${city.city}">
-                <div class="flex justify-between"><span class="font-bold text-lg">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="${selectedCity.city === city.city ? 'text-emerald-400' : 'text-slate-500'}"></i></div>
-                <p class="text-sm text-slate-400">${city.sector}</p>
-                <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <span>🌡️ LST: ${city.lst}°C</span>
-                  <span>🌿 خضرة: ${city.greenSpace}</span>
-                  <span>🏭 NDBI: ${city.ndbi}</span>
-                  <span>⚡ كربون: ${city.carbonIndex}</span>
+              <div class="city-selector cursor-pointer rounded-xl border-2 p-4 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/70'}" data-city="${city.city}">
+                <div class="flex justify-between items-center mb-1"><span class="font-bold text-lg">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="${selectedCity.city === city.city ? 'text-emerald-400' : 'text-slate-600'}"></i></div>
+                <p class="text-xs text-slate-400 mb-2">${city.sector}</p>
+                <div class="flex justify-between text-[11px] bg-slate-900/50 p-2 rounded">
+                  <span>NDBI: <b class="text-red-400">${city.ndbi}</b></span>
+                  <span>NDVI: <b class="text-emerald-400">${city.ndvi}</b></span>
                 </div>
               </div>
             `).join('')}
           </div>
 
           <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-2xl">
-            <div class="flex flex-wrap gap-6 items-center">
-              <div class="flex-1 min-w-[240px]">
-                <span class="text-sm text-slate-400">المنطقة المختارة:</span>
-                <div class="text-2xl font-black">${selectedCity.city} <span class="text-base font-normal text-slate-300 mx-2">${selectedCity.sector}</span></div>
-                <div class="mt-4 grid grid-cols-2 gap-4">
-                  <div class="bg-slate-900/60 p-3 rounded-lg">
-                    <p class="text-xs text-slate-400">درجة حرارة السطح (LST)</p>
-                    <p class="text-3xl font-mono">${selectedCity.lst}°C</p>
+            
+            <div class="mb-8 bg-slate-900/60 p-5 rounded-xl border border-slate-700">
+              <label class="flex justify-between items-center mb-4">
+                <span class="font-bold text-lg">استثمارات البنية التحتية الخضراء (زيادة NDVI)</span>
+                <span id="boost-badge" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold">+0%</span>
+              </label>
+              <input type="range" id="ndvi-slider" min="0" max="50" step="1" value="0" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+              <div class="flex justify-between text-xs text-slate-400 mt-2">
+                <span>الوضع الحالي (لا تدخل)</span>
+                <span>تخضير مكثف للمنشأة (+50%)</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <div class="space-y-4">
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 transition duration-300" id="lst-card">
+                  <p class="text-sm text-slate-400 mb-1 flex items-center gap-2"><i data-lucide="thermometer" class="w-4"></i> درجة حرارة السطح (LST)</p>
+                  <div class="flex items-end gap-2">
+                    <p class="text-4xl font-mono" id="val-lst">${metrics.currentLst}°</p>
+                    <p class="text-sm text-emerald-400 mb-1" id="val-lst-diff"></p>
                   </div>
-                  <div class="bg-slate-900/60 p-3 rounded-lg">
-                    <p class="text-xs text-slate-400">معامل الجزيرة الحرارية</p>
-                    <p class="text-2xl font-mono text-amber-400">+${uhiImpact}%</p>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700">
+                  <p class="text-sm text-slate-400 mb-1 flex items-center gap-2"><i data-lucide="sun" class="w-4"></i> معامل الجزيرة الحرارية</p>
+                  <p class="text-2xl font-mono text-amber-400" id="val-uhi">+${metrics.uhiImpact}%</p>
+                </div>
+              </div>
+
+              <div class="md:col-span-2 bg-emerald-900/20 p-6 rounded-xl border border-emerald-500/30 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="euro" class="w-24 h-24"></i></div>
+                <div class="relative z-10">
+                  <p class="text-sm text-emerald-400 font-semibold mb-2">ضريبة الكربون المقدرة (CBAM)</p>
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-5xl font-black text-white" id="val-levy">€${metrics.levy}</span>
+                    <span class="text-slate-400">/ للطن</span>
+                  </div>
+                  
+                  <div class="mt-6 border-t border-emerald-500/20 pt-4 grid grid-cols-2 gap-4">
+                    <div>
+                      <p class="text-xs text-slate-400">إجمالي التكلفة السنوية</p>
+                      <p class="text-xl font-mono text-slate-200">€<span id="val-total">${metrics.totalLevyCost}</span></p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-slate-400">الوفورات المحققة من التشجير</p>
+                      <p class="text-xl font-mono text-emerald-400 font-bold">€<span id="val-savings">0</span></p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="bg-emerald-900/30 p-5 rounded-xl border border-emerald-500/30">
-                <p class="text-sm text-emerald-300">ضريبة CBAM المتوقعة (€/طن)</p>
-                <p class="text-5xl font-black text-emerald-300">€${levy}</p>
-                <p class="text-[10px] uppercase tracking-wider mt-1">بناءً على معامل التبريد</p>
-              </div>
-            </div>
-            <div class="mt-6 bg-slate-950/40 p-4 rounded-lg flex gap-3 items-start">
-              <i data-lucide="alert-triangle" class="text-amber-500 shrink-0"></i>
-              <p class="text-sm">زيادة الغطاء النباتي بنسبة 10% في ${selectedCity.city} قد تخفض درجة الحرارة السطحية بمقدار 1.2°C وتوفر حوالي 8% من تكلفة CBAM.</p>
-            </div>
-            <div class="flex justify-end mt-4">
-              <button class="bg-emerald-700 hover:bg-emerald-600 px-6 py-2 rounded-lg text-sm font-bold shadow flex items-center gap-2"><i data-lucide="sliders"></i> تشغيل محاكاة متقدمة</button>
+
             </div>
           </div>
         </div>
       `;
       contentEl.innerHTML = html;
+
+      // Attach interaction events
+      attachCitySelectionEvents();
+      attachSliderEvents();
+    }
+
+    function attachCitySelectionEvents() {
       document.querySelectorAll('.city-selector').forEach(el => {
-        el.addEventListener('click', (e) => {
+        el.addEventListener('click', () => {
           const cityName = el.dataset.city;
           const found = cityData.find(c => c.city === cityName);
           if (found) {
             selectedCity = { ...found };
-            renderSimulator();
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            renderSimulator(); // Re-render whole tab for new city
           }
         });
       });
-      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // ------ COMPLIANCE (CBAM report preview, fully interactive) ------
-    function renderComplianceTab() {
-      const reportId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      const levy = calculateCbamLevy(selectedCity.lst);
-      const uhi = ((selectedCity.lst - 38) * 1.5).toFixed(1);
-      
-      const html = `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Sidebar city selector -->
-          <div class="lg:col-span-1 space-y-5">
-            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
-              <h3 class="font-bold text-lg mb-4 flex items-center"><i data-lucide="map-pin" class="text-emerald-400 ms-2"></i> النطاق الصناعي</h3>
-              <div class="space-y-2">
-                ${cityData.map(city => `
-                  <div class="city-card p-4 rounded-xl border transition cursor-pointer ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:bg-slate-700/60'}" data-city-card="${city.city}">
-                    <div class="flex justify-between items-center">
-                      <span class="font-bold">${city.city}</span>
-                      ${selectedCity.city === city.city ? '<i data-lucide="check-circle" class="text-emerald-500 w-5"></i>' : ''}
-                    </div>
-                    <p class="text-xs text-slate-400">${city.sector}</p>
-                    <div class="flex gap-3 mt-2 text-xs"><span>🌡️ ${city.lst}°C</span><span>📊 NDBI ${city.ndbi}</span></div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-            <div class="bg-amber-500/10 p-5 rounded-2xl border border-amber-500/30">
-              <div class="flex gap-3"><i data-lucide="alert-triangle" class="text-amber-500"></i><span class="font-bold text-amber-400">تنبيه CBAM</span></div>
-              <p class="text-xs mt-2 text-slate-300">${selectedCity.city} ضمن نطاق ضريبة الكربون الأوروبية. الحرارة السطحية تؤثر على انبعاثات النطاق الثاني.</p>
-            </div>
-          </div>
-
-          <!-- Main compliance report card -->
-          <div class="lg:col-span-2">
-            <div class="bg-white text-slate-900 p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden border border-slate-200">
-              <div class="absolute top-0 left-0 right-0 h-2 bg-emerald-600"></div>
-              <div class="flex flex-wrap justify-between items-start border-b pb-4 mb-6">
-                <div>
-                  <h2 class="text-xl md:text-2xl font-black text-slate-900">تقرير التحقق الفضائي (MRV)</h2>
-                  <p class="text-slate-500 text-xs md:text-sm">متوافق مع معايير الاتحاد الأوروبي CBAM</p>
-                </div>
-                <div class="border p-2 rounded text-left" dir="ltr">
-                  <p class="text-[10px] font-mono">REPORT_ID: ${reportId}</p>
-                  <p class="text-[10px] font-mono">DATE: 2026-04-19</p>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div class="space-y-3">
-                  <div class="bg-slate-50 p-4 rounded-lg">
-                    <span class="text-xs text-slate-500 font-bold">المنشأة/المنطقة:</span>
-                    <p class="text-lg font-bold">${selectedCity.city}</p>
-                  </div>
-                  <div class="bg-slate-50 p-4 rounded-lg">
-                    <span class="text-xs text-slate-500 font-bold">تأثير الجزيرة الحرارية (UHI):</span>
-                    <p class="text-lg font-bold text-red-600">+${uhi}% زيادة استهلاك الطاقة</p>
-                  </div>
-                </div>
-                <div class="space-y-3">
-                  <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                    <span class="text-xs text-emerald-700 font-bold">رسوم CBAM المتوقعة:</span>
-                    <p class="text-2xl font-black text-emerald-900">€${levy} / طن</p>
-                  </div>
-                  <div class="bg-slate-50 p-4 rounded-lg">
-                    <span class="text-xs text-slate-500 font-bold">دقة البيانات الفضائية:</span>
-                    <p class="font-bold">عالية (Landsat 8/9)</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mb-8">
-                <h3 class="font-bold border-r-4 border-emerald-600 pr-3 mb-2">تحليل التحقق</h3>
-                <p class="text-sm leading-relaxed text-slate-700">بناءً على رصد صيف 2025، تظهر ${selectedCity.city} كثافة حرارية (LST ${selectedCity.lst}°C) تؤثر على كفاءة التبريد. يوصى بزيادة NDVI بنسبة 15% لتقليل البصمة الكربونية.</p>
-              </div>
-
-              <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t">
-                <div class="flex gap-2">
-                  <button class="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-800"><i data-lucide="download"></i> تحميل PDF</button>
-                  <button class="border border-slate-300 text-slate-700 px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-100">إرسال للمدقق</button>
-                </div>
-                <div class="flex items-center gap-2 text-emerald-700 font-bold"><i data-lucide="shield-check"></i> تم التحقق فضائياً</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      contentEl.innerHTML = html;
-      
-      // Attach city selection events
-      document.querySelectorAll('[data-city-card]').forEach(card => {
-        card.addEventListener('click', () => {
-          const city = card.dataset.cityCard;
-          const found = cityData.find(c => c.city === city);
-          if (found) {
-            selectedCity = { ...found };
-            renderComplianceTab();
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-          }
-        });
+    function attachSliderEvents() {
+      const slider = document.getElementById('ndvi-slider');
+      slider.addEventListener('input', (e) => {
+        currentGreenBoost = parseInt(e.target.value);
+        updateSimulatorUI();
       });
-      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // ----- Event listeners: tabs -----
+    function updateSimulatorUI() {
+      const metrics = getDynamicMetrics();
+      
+      // Update Badge
+      document.getElementById('boost-badge').innerText = \`+\${currentGreenBoost}%\`;
+      
+      // Update LST and flash effect
+      const lstEl = document.getElementById('val-lst');
+      lstEl.innerText = \`\${metrics.currentLst}°\`;
+      
+      const diffEl = document.getElementById('val-lst-diff');
+      const tempDiff = (selectedCity.baseLst - parseFloat(metrics.currentLst)).toFixed(1);
+      diffEl.innerText = tempDiff > 0 ? \`(-\${tempDiff}°C)\` : '';
+
+      // Update UHI
+      document.getElementById('val-uhi').innerText = \`+\${metrics.uhiImpact}%\`;
+      
+      // Update CBAM Levy
+      document.getElementById('val-levy').innerText = \`€\${metrics.levy}\`;
+      document.getElementById('val-total').innerText = metrics.totalLevyCost;
+      document.getElementById('val-savings').innerText = metrics.savings;
+
+      // Add a subtle color pulse if there are savings
+      const lstCard = document.getElementById('lst-card');
+      if (tempDiff > 0) {
+        lstCard.style.borderColor = '#10b981';
+        setTimeout(() => lstCard.style.borderColor = '#334155', 300);
+      }
+    }
+
+    // Initialize logic
     function setupTabs() {
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const tab = btn.dataset.tab;
-          if (tab) {
-            activeTab = tab;
+        btn.addEventListener('click', () => {
+          if (btn.dataset.tab) {
+            activeTab = btn.dataset.tab;
             renderAll();
           }
         });
       });
     }
 
-    // Initialize
     window.addEventListener('DOMContentLoaded', () => {
-      // set initial selected city (first)
-      selectedCity = { ...cityData[0] };
       renderAll();
       setupTabs();
-      if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 
-    // Re-run lucide on any dynamic change
   })();
 </script>
-<!-- ensure icons render -->
 <script>window.lucide && lucide.createIcons();</script>
 </body>
 </html>
