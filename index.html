@@ -1,419 +1,438 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGO Chatbot</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #2E7D32;
-            --secondary-color: #81C784;
-            --background: #F5F5F5;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--background);
-        }
-
-        .page-header {
-            display: flex;
-            align-items: center;
-            background: var(--primary-color);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .logo {
-            height: 40px;
-            margin-right: 15px;
-        }
-
-        .page-header h1 {
-            color: white;
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            display: grid;
-            grid-template-columns: 300px 2fr 1fr;
-            gap: 20px;
-        }
-
-        .chat-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .message {
-            margin: 10px 0;
-            padding: 12px;
-            border-radius: 15px;
-            max-width: 80%;
-            line-height: 1.5;
-        }
-
-        .message strong {
-            font-weight: 600;
-            color: inherit;
-        }
-
-        .message em {
-            font-style: italic;
-            color: inherit;
-        }
-
-        .user-message {
-            background: var(--secondary-color);
-            margin-left: auto;
-        }
-
-        .bot-message {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .input-section {
-            padding: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .visualization {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        .menu {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .menu-item {
-            padding: 15px;
-            margin: 10px 0;
-            background: var(--background);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .menu-item:hover {
-            background: #e0e0e0;
-        }
-
-        .file-input {
-            margin: 10px 0;
-        }
-
-        .thinking {
-            color: #666;
-            font-style: italic;
-        }
-
-        .error-message {
-            color: #d32f2f;
-            font-weight: 500;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eco-Urban-Space · CBAM & Sustainability Dashboard</title>
+  <!-- Tailwind + custom styles, interactive mockup of React features -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons (mimic React lucide-react) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* smooth transitions & custom placeholders */
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+    }
+    .chart-placeholder-enhanced {
+      background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 1rem;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.03), 0 8px 20px -6px rgba(0,0,0,0.1);
+    }
+    .tab-active {
+      background: #059669 !important;
+      color: white !important;
+      box-shadow: 0 4px 6px -1px rgba(5,150,105,0.3);
+    }
+    .city-card-active {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.12) !important;
+    }
+    .report-card {
+      transition: all 0.2s ease;
+    }
+    .separator img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    /* arabic support */
+    [dir="rtl"] {
+      text-align: right;
+    }
+  </style>
 </head>
-<body>
-    <header class="page-header">
-        <img src="img/ago.png" class="logo" alt="AGO Logo">
-        <h1>AGO Chatbot</h1>
-    </header>
+<body class="bg-slate-900 text-slate-200 antialiased" dir="rtl">
 
-    <div class="container">
-        <div class="menu">
-            <div class="menu-item" onclick="showSection('goal')">🏁 Set Sustainability Goal</div>
-            <div class="menu-item" onclick="showSection('bill')">📊 Process Energy Bill</div>
-            <div class="menu-item" onclick="showSection('recommendations')">💡 View Recommendations</div>
-            <input type="file" id="fileInput" class="file-input" hidden>
+<div class="min-h-screen">
+  <!-- Navigation (matching React style) -->
+  <nav class="bg-slate-800 border-b border-slate-700 px-4 py-3 shadow-xl sticky top-0 z-20">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-600 p-2.5 rounded-xl shadow-lg">
+          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
         </div>
-
-        <div class="chat-container">
-            <div class="chat-messages" id="chatMessages"></div>
-            <div class="input-section">
-                <input type="text" id="userInput" placeholder="Type your question..." autocomplete="off">
-                <button onclick="sendMessage()">Send</button>
-            </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-tight">Eco-Urban-Space</h1>
+          <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">MRV & CBAM Intelligence</p>
         </div>
-
-        <div class="visualization" id="visualization">
-            <canvas id="co2Chart"></canvas>
-            <div id="recommendations"></div>
-        </div>
+      </div>
+      <div class="flex gap-1.5 bg-slate-900/40 p-1 rounded-xl backdrop-blur-sm">
+        <button data-tab="dashboard" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+          <i data-lucide="bar-chart-3" class="inline-block w-4 h-4 ms-1"></i> لوحة البيانات
+        </button>
+        <button data-tab="simulator" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+          <i data-lucide="thermometer-sun" class="inline-block w-4 h-4 ms-1"></i> المحاكي
+        </button>
+        <button data-tab="compliance" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+          <i data-lucide="file-check" class="inline-block w-4 h-4 ms-1"></i> تقارير الامتثال
+        </button>
+      </div>
     </div>
+  </nav>
 
-    <script>
-        // API Configuration 
-        const API_CONFIG = {
-            endpoint: 'https://ago.openai.azure.com/openai/deployments/gpt-4o',
-            apiVersion: '2025-01-01-preview',
-            apiKey: '895wldthT3YtWIfqrJVloEuSW5C3mA7Q14qq00iEpNvJYDfsfTeTJQQJ99BDACHYHv6XJ3w3AAABACOGT1IT' // Never expose this in production
-        };
+  <!-- Main container -->
+  <main class="max-w-7xl mx-auto p-4 md:p-6" id="app-content">
+    <!-- Tabs will be rendered here via JS, fallback static will be replaced -->
+  </main>
+</div>
 
-        const SYSTEM_PROMPT = `You are an AI model designed to function as an interactive chatbot specializing in carbon footprint analysis and emission reduction strategies in the energy and information technology (IT) sectors. Your primary role is to assist users—such as sustainability analysts, energy managers, policymakers, and IT professionals—by providing informed, context-aware responses based on a comprehensive understanding of emissions sources, reduction technologies, and sector-specific best practices.`;
+<script>
+  (function(){
+    "use strict";
+    
+    // ----- DATA (mirroring React initialData) -----
+    const cityData = [
+      { city: 'حلوان', ndbi: 0.65, greenSpace: 0.15, lst: 42.5, sector: 'الأسمنت والحديد', carbonIndex: 0.85 },
+      { city: 'العاشر من رمضان', ndbi: 0.58, greenSpace: 0.5, lst: 40.8, sector: 'الكيمياويات والمنسوجات', carbonIndex: 0.72 },
+      { city: 'المحلة الكبرى', ndbi: 0.72, greenSpace: 0.12, lst: 44.2, sector: 'الغزل والنسيج', carbonIndex: 0.91 },
+      { city: 'القاهرة الجديدة', ndbi: 0.40, greenSpace: 13.4, lst: 38.5, sector: 'خدمات وتكنولوجيا', carbonIndex: 0.35 }
+    ];
 
-        // DOM Elements
-        const chatMessages = document.getElementById('chatMessages');
-        const userInput = document.getElementById('userInput');
-        const fileInput = document.getElementById('fileInput');
-        const visualizationPanel = document.getElementById('visualization');
-        let chartInstance = null;
+    // State
+    let activeTab = 'compliance';      // default to compliance (CBAM report)
+    let selectedCity = { ...cityData[0] };
 
-        // Initialize the chat with welcome message
-        appendMessage("Welcome to the AGO Sustainability Chatbot! How can I assist you with your carbon footprint analysis today?", false);
+    // Helper: CBAM levy calculation (matching React)
+    const calculateCbamLevy = (lst) => {
+      const baseLevy = 85;        // € per ton
+      const heatingFactor = (lst - 35) * 1.2;
+      return (baseLevy + heatingFactor).toFixed(2);
+    };
 
-        // Function to append messages to the chat
-        function appendMessage(content, isUser = false) {
-            const message = document.createElement('div');
-            message.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-            
-            // Simple formatting for better readability
-            const formattedContent = content
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
-                .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
-                .replace(/\n/g, '<br>'); // Line breaks
-            
-            message.innerHTML = formattedContent;
-            chatMessages.appendChild(message);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    // ----- Render functions -----
+    const contentEl = document.getElementById('app-content');
+    
+    function renderAll() {
+      // Update active tab styling
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const tab = btn.dataset.tab;
+        if (tab === activeTab) {
+          btn.classList.add('tab-active', 'bg-emerald-600', 'text-white');
+          btn.classList.remove('text-slate-300', 'hover:bg-slate-700');
+        } else {
+          btn.classList.remove('tab-active', 'bg-emerald-600', 'text-white');
+          btn.classList.add('text-slate-300', 'hover:bg-slate-700');
         }
+      });
 
-        // Function to send message to the API
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
+      if (activeTab === 'dashboard') {
+        renderDashboard();
+      } else if (activeTab === 'simulator') {
+        renderSimulator();
+      } else {
+        renderComplianceTab();
+      }
+      
+      // Re-init lucide icons after DOM update
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
 
-            // Add user message to chat
-            appendMessage(message, true);
-            userInput.value = '';
-            
-            // Show thinking indicator
-            const thinkingIndicator = document.createElement('div');
-            thinkingIndicator.className = 'message bot-message thinking';
-            thinkingIndicator.textContent = 'Analyzing your request...';
-            chatMessages.appendChild(thinkingIndicator);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    // ------ DASHBOARD (enhanced old style with new mockups) ------
+    function renderDashboard() {
+      const html = `
+        <div class="space-y-6 animate-in fade-in duration-500">
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="leaf" class="text-emerald-400"></i> لوحة الاستدامة · مؤشرات آنية</h2>
+            <div class="bg-slate-800 px-4 py-2 rounded-full text-sm"><i data-lucide="calendar"></i> ربيع 2026</div>
+          </div>
 
-            try {
-                const response = await generateResponse(message);
-                
-                // Remove thinking indicator
-                chatMessages.removeChild(thinkingIndicator);
-                
-                // Add bot response
-                appendMessage(response);
-                
-                // Show visualization panel if relevant
-                if (response.includes('chart') || response.includes('data')) {
-                    showVisualization();
-                }
-            } catch (error) {
-                chatMessages.removeChild(thinkingIndicator);
-                appendMessage(`<span class="error-message">Error: ${error.message}</span>`, false);
-                console.error('API Error:', error);
-            }
-        }
+          <!-- Original dashboard style but updated with interactive cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Carbon Footprint Overview (enhanced with data) -->
+            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="bg-blue-500/20 p-2 rounded-lg"><i data-lucide="bar-chart-3" class="text-blue-400 w-7 h-7"></i></div>
+                <h3 class="text-xl font-bold">بصمة الكربون</h3>
+              </div>
+              <p class="text-slate-400 text-sm mb-4">انبعاثات النطاق 1،2،3 (طن CO₂e)</p>
+              <div class="chart-placeholder-enhanced p-4 flex flex-col items-center">
+                <div class="w-full h-40 flex items-end justify-around gap-2 px-2">
+                  <div class="flex flex-col items-center w-1/4"><div class="bg-cyan-500 w-full h-20 rounded-t-lg" style="height: 60px;"></div><span class="text-xs mt-2">النطاق 1</span><span class="font-bold">2.4k</span></div>
+                  <div class="flex flex-col items-center w-1/4"><div class="bg-emerald-500 w-full h-28 rounded-t-lg" style="height: 80px;"></div><span class="text-xs mt-2">النطاق 2</span><span class="font-bold">4.1k</span></div>
+                  <div class="flex flex-col items-center w-1/4"><div class="bg-amber-500 w-full h-36 rounded-t-lg" style="height: 110px;"></div><span class="text-xs mt-2">النطاق 3</span><span class="font-bold">9.8k</span></div>
+                </div>
+                <p class="text-xs text-slate-400 mt-2"><i data-lucide="info" class="inline w-3"></i> مقارنة بالعام الماضي -7%</p>
+              </div>
+              <div class="mt-3 text-sm border-t border-slate-700 pt-3 flex justify-between">
+                <span>🏭 الإجمالي: <span class="font-mono font-bold">16.3k طن</span></span>
+                <span class="text-emerald-400">▼ 5.2%</span>
+              </div>
+            </div>
 
-        // Generate response from OpenAI API
-        async function generateResponse(prompt) {
-            try {
-                const response = await axios.post(
-                    `${API_CONFIG.endpoint}/chat/completions?api-version=${API_CONFIG.apiVersion}`,
-                    {
-                        messages: [
-                            { role: "system", content: SYSTEM_PROMPT },
-                            { role: "user", content: prompt }
-                        ],
-                        temperature: 0.7,
-                        max_tokens: 800
-                    },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'api-key': API_CONFIG.apiKey
-                        }
-                    }
-                );
+            <!-- Charts & Graphs (mock with interactive elements) -->
+            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="bg-purple-500/20 p-2 rounded-lg"><i data-lucide="trending-up" class="text-purple-400 w-7 h-7"></i></div>
+                <h3 class="text-xl font-bold">اتجاهات الانبعاثات</h3>
+              </div>
+              <p class="text-slate-400 text-sm mb-2">مقارنة بمعايير القطاع</p>
+              <div class="bg-slate-900/60 p-3 rounded-xl">
+                <div class="flex justify-between text-xs mb-1"><span>انبعاثاتك</span><span>المتوسط الصناعي</span></div>
+                <div class="h-3 w-full bg-slate-700 rounded-full overflow-hidden flex">
+                  <div class="bg-emerald-500 h-full" style="width: 68%"></div>
+                  <div class="bg-slate-500 h-full" style="width: 32%"></div>
+                </div>
+              </div>
+              <!-- Simple chart representation -->
+              <div class="mt-4 flex items-end h-28 gap-1">
+                <div class="flex-1 bg-emerald-500/60 h-16 rounded-t hover:bg-emerald-400 transition"></div>
+                <div class="flex-1 bg-emerald-500/60 h-20 rounded-t"></div>
+                <div class="flex-1 bg-emerald-500/60 h-14 rounded-t"></div>
+                <div class="flex-1 bg-emerald-500/60 h-24 rounded-t"></div>
+                <div class="flex-1 bg-emerald-500/60 h-16 rounded-t"></div>
+                <div class="flex-1 bg-emerald-500/60 h-20 rounded-t"></div>
+              </div>
+              <p class="text-xs text-slate-400 mt-3 flex items-center"><i data-lucide="download" class="w-3 me-1"></i> تحديث: بيانات Landsat 9</p>
+            </div>
 
-                return response.data.choices[0].message.content.trim();
-            } catch (error) {
-                throw new Error('Failed to get response from the AI service. Please try again later.');
-            }
-        }
+            <!-- Recommendations (interactive, linked to city) -->
+            <div class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-xl">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="bg-amber-500/20 p-2 rounded-lg"><i data-lucide="lightbulb" class="text-amber-400 w-7 h-7"></i></div>
+                <h3 class="text-xl font-bold">توصيات ذكية</h3>
+              </div>
+              <ul class="space-y-3">
+                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
+                  <i data-lucide="zap" class="text-yellow-400 shrink-0"></i>
+                  <div><span class="font-semibold">تحويل لإضاءة LED</span><p class="text-xs text-slate-400">عائد سنوي 10,000$ · سنتين استرداد</p></div>
+                </li>
+                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
+                  <i data-lucide="thermometer" class="text-blue-400 shrink-0"></i>
+                  <div><span class="font-semibold">تحسين HVAC</span><p class="text-xs text-slate-400">خفض 15% من استهلاك التبريد</p></div>
+                </li>
+                <li class="bg-slate-900/70 p-3 rounded-lg border border-slate-700 flex gap-3">
+                  <i data-lucide="truck" class="text-purple-400 shrink-0"></i>
+                  <div><span class="font-semibold">تعاقد مع موردين أخضر</span><p class="text-xs text-slate-400">خفض النطاق 3 بنسبة 12%</p></div>
+                </li>
+              </ul>
+              <button class="mt-4 w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600/30 transition">
+                <i data-lucide="sparkles" class="inline w-4"></i> توليد توصيات CBAM
+              </button>
+            </div>
+          </div>
 
-        // Show different sections
-        function showSection(section) {
-            switch(section) {
-                case 'goal':
-                    handleSustainabilityGoal();
-                    break;
-                case 'bill':
-                    fileInput.click();
-                    break;
-                case 'recommendations':
-                    showRecommendations();
-                    break;
-                default:
-                    appendMessage("I'm not sure what you're looking for. Please try one of the menu options or ask me directly.", false);
-            }
-        }
+          <!-- Additional row: interactive spatial mockup (NDBI/Green space) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div class="flex gap-3 items-center"><i data-lucide="map" class="text-emerald-500"></i><h4 class="font-bold">مؤشر الكتلة المبنية (NDBI) للمدن</h4></div>
+              <div class="grid grid-cols-4 gap-2 mt-3">
+                ${cityData.map(c => `<div class="text-center p-2 bg-slate-900/50 rounded"><span class="block text-sm font-bold">${c.city}</span><span class="text-lg ${c.ndbi > 0.6 ? 'text-amber-400' : 'text-emerald-400'}">${c.ndbi.toFixed(2)}</span></div>`).join('')}
+              </div>
+            </div>
+            <div class="bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div class="flex gap-3 items-center"><i data-lucide="tree-pine" class="text-green-500"></i><h4 class="font-bold">المساحات الخضراء (كم²)</h4></div>
+              <div class="grid grid-cols-4 gap-2 mt-3">
+                ${cityData.map(c => `<div class="text-center p-2 bg-slate-900/50 rounded"><span class="block text-sm">${c.city}</span><span class="text-lg ${c.greenSpace < 1 ? 'text-red-400' : 'text-green-400'}">${c.greenSpace.toFixed(1)}</span></div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      contentEl.innerHTML = html;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
-        // Handle file upload for energy bills
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    // ------ SIMULATOR (CBAM & UHI interactive) ------
+    function renderSimulator() {
+      const levy = calculateCbamLevy(selectedCity.lst);
+      const uhiImpact = ((selectedCity.lst - 38) * 1.5).toFixed(1);
+      const html = `
+        <div class="max-w-4xl mx-auto space-y-6 animate-in zoom-in duration-300">
+          <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="thermometer-sun" class="text-orange-400"></i> محاكي تأثير CBAM والجزر الحرارية</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            ${cityData.map(city => `
+              <div class="city-selector cursor-pointer rounded-xl border-2 p-5 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/70'}" data-city="${city.city}">
+                <div class="flex justify-between"><span class="font-bold text-lg">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="${selectedCity.city === city.city ? 'text-emerald-400' : 'text-slate-500'}"></i></div>
+                <p class="text-sm text-slate-400">${city.sector}</p>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <span>🌡️ LST: ${city.lst}°C</span>
+                  <span>🌿 خضرة: ${city.greenSpace}</span>
+                  <span>🏭 NDBI: ${city.ndbi}</span>
+                  <span>⚡ كربون: ${city.carbonIndex}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
 
-            appendMessage(`Processing energy bill: ${file.name}`, true);
-            
-            try {
-                // Simulate file processing - in a real app, you would parse the actual file
-                const analysis = await analyzeEnergyBill(file);
-                appendMessage(analysis);
-                updateChart([45, 30, 25]); // Example data
-                showVisualization();
-            } catch (error) {
-                appendMessage(`<span class="error-message">Error processing file: ${error.message}</span>`, false);
-            }
+          <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl border border-slate-700 shadow-2xl">
+            <div class="flex flex-wrap gap-6 items-center">
+              <div class="flex-1 min-w-[240px]">
+                <span class="text-sm text-slate-400">المنطقة المختارة:</span>
+                <div class="text-2xl font-black">${selectedCity.city} <span class="text-base font-normal text-slate-300 mx-2">${selectedCity.sector}</span></div>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                  <div class="bg-slate-900/60 p-3 rounded-lg">
+                    <p class="text-xs text-slate-400">درجة حرارة السطح (LST)</p>
+                    <p class="text-3xl font-mono">${selectedCity.lst}°C</p>
+                  </div>
+                  <div class="bg-slate-900/60 p-3 rounded-lg">
+                    <p class="text-xs text-slate-400">معامل الجزيرة الحرارية</p>
+                    <p class="text-2xl font-mono text-amber-400">+${uhiImpact}%</p>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-emerald-900/30 p-5 rounded-xl border border-emerald-500/30">
+                <p class="text-sm text-emerald-300">ضريبة CBAM المتوقعة (€/طن)</p>
+                <p class="text-5xl font-black text-emerald-300">€${levy}</p>
+                <p class="text-[10px] uppercase tracking-wider mt-1">بناءً على معامل التبريد</p>
+              </div>
+            </div>
+            <div class="mt-6 bg-slate-950/40 p-4 rounded-lg flex gap-3 items-start">
+              <i data-lucide="alert-triangle" class="text-amber-500 shrink-0"></i>
+              <p class="text-sm">زيادة الغطاء النباتي بنسبة 10% في ${selectedCity.city} قد تخفض درجة الحرارة السطحية بمقدار 1.2°C وتوفر حوالي 8% من تكلفة CBAM.</p>
+            </div>
+            <div class="flex justify-end mt-4">
+              <button class="bg-emerald-700 hover:bg-emerald-600 px-6 py-2 rounded-lg text-sm font-bold shadow flex items-center gap-2"><i data-lucide="sliders"></i> تشغيل محاكاة متقدمة</button>
+            </div>
+          </div>
+        </div>
+      `;
+      contentEl.innerHTML = html;
+      document.querySelectorAll('.city-selector').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const cityName = el.dataset.city;
+          const found = cityData.find(c => c.city === cityName);
+          if (found) {
+            selectedCity = { ...found };
+            renderSimulator();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+          }
         });
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
-        // Simulate energy bill analysis
-        async function analyzeEnergyBill(file) {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(`Analysis of your energy bill shows:\n\n` +
-                           `- Total consumption: 1,250 kWh\n` +
-                           `- Estimated CO2 emissions: 0.75 metric tons\n` +
-                           `- Primary sources: Electricity (85%), Natural Gas (15%)\n\n` +
-                           `**Recommendation:** Consider switching to renewable energy providers to reduce your Scope 2 emissions by up to 40%.`);
-                }, 1500);
-            });
-        }
+    // ------ COMPLIANCE (CBAM report preview, fully interactive) ------
+    function renderComplianceTab() {
+      const reportId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const levy = calculateCbamLevy(selectedCity.lst);
+      const uhi = ((selectedCity.lst - 38) * 1.5).toFixed(1);
+      
+      const html = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Sidebar city selector -->
+          <div class="lg:col-span-1 space-y-5">
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+              <h3 class="font-bold text-lg mb-4 flex items-center"><i data-lucide="map-pin" class="text-emerald-400 ms-2"></i> النطاق الصناعي</h3>
+              <div class="space-y-2">
+                ${cityData.map(city => `
+                  <div class="city-card p-4 rounded-xl border transition cursor-pointer ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:bg-slate-700/60'}" data-city-card="${city.city}">
+                    <div class="flex justify-between items-center">
+                      <span class="font-bold">${city.city}</span>
+                      ${selectedCity.city === city.city ? '<i data-lucide="check-circle" class="text-emerald-500 w-5"></i>' : ''}
+                    </div>
+                    <p class="text-xs text-slate-400">${city.sector}</p>
+                    <div class="flex gap-3 mt-2 text-xs"><span>🌡️ ${city.lst}°C</span><span>📊 NDBI ${city.ndbi}</span></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="bg-amber-500/10 p-5 rounded-2xl border border-amber-500/30">
+              <div class="flex gap-3"><i data-lucide="alert-triangle" class="text-amber-500"></i><span class="font-bold text-amber-400">تنبيه CBAM</span></div>
+              <p class="text-xs mt-2 text-slate-300">${selectedCity.city} ضمن نطاق ضريبة الكربون الأوروبية. الحرارة السطحية تؤثر على انبعاثات النطاق الثاني.</p>
+            </div>
+          </div>
 
-        // Handle sustainability goal setting
-        async function handleSustainabilityGoal() {
-            appendMessage("Let's set your sustainability goals. Which scope are you focusing on?\n\n" +
-                         "1. Scope 1 (Direct emissions)\n" +
-                         "2. Scope 2 (Energy indirect emissions)\n" +
-                         "3. Scope 3 (Other indirect emissions)", false);
-        }
+          <!-- Main compliance report card -->
+          <div class="lg:col-span-2">
+            <div class="bg-white text-slate-900 p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden border border-slate-200">
+              <div class="absolute top-0 left-0 right-0 h-2 bg-emerald-600"></div>
+              <div class="flex flex-wrap justify-between items-start border-b pb-4 mb-6">
+                <div>
+                  <h2 class="text-xl md:text-2xl font-black text-slate-900">تقرير التحقق الفضائي (MRV)</h2>
+                  <p class="text-slate-500 text-xs md:text-sm">متوافق مع معايير الاتحاد الأوروبي CBAM</p>
+                </div>
+                <div class="border p-2 rounded text-left" dir="ltr">
+                  <p class="text-[10px] font-mono">REPORT_ID: ${reportId}</p>
+                  <p class="text-[10px] font-mono">DATE: 2026-04-19</p>
+                </div>
+              </div>
 
-        // Show recommendations
-        async function showRecommendations() {
-            appendMessage("Generating personalized recommendations...", false);
-            
-            try {
-                const response = await generateResponse("Provide 3 specific recommendations for reducing carbon footprint in IT operations");
-                appendMessage(`**Recommendations:**\n\n${response}`);
-            } catch (error) {
-                appendMessage(`<span class="error-message">Error generating recommendations: ${error.message}</span>`, false);
-            }
-        }
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div class="space-y-3">
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">المنشأة/المنطقة:</span>
+                    <p class="text-lg font-bold">${selectedCity.city}</p>
+                  </div>
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">تأثير الجزيرة الحرارية (UHI):</span>
+                    <p class="text-lg font-bold text-red-600">+${uhi}% زيادة استهلاك الطاقة</p>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                    <span class="text-xs text-emerald-700 font-bold">رسوم CBAM المتوقعة:</span>
+                    <p class="text-2xl font-black text-emerald-900">€${levy} / طن</p>
+                  </div>
+                  <div class="bg-slate-50 p-4 rounded-lg">
+                    <span class="text-xs text-slate-500 font-bold">دقة البيانات الفضائية:</span>
+                    <p class="font-bold">عالية (Landsat 8/9)</p>
+                  </div>
+                </div>
+              </div>
 
-        // Update the chart with new data
-        function updateChart(data) {
-            const ctx = document.getElementById('co2Chart').getContext('2d');
-            
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Scope 1', 'Scope 2', 'Scope 3'],
-                    datasets: [{
-                        label: 'CO2 Emissions (metric tons)',
-                        data: data,
-                        backgroundColor: [
-                            'rgba(46, 125, 50, 0.7)',
-                            'rgba(129, 199, 132, 0.7)',
-                            'rgba(200, 230, 201, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(46, 125, 50, 1)',
-                            'rgba(129, 199, 132, 1)',
-                            'rgba(200, 230, 201, 1)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Metric Tons CO2e'
-                            }
-                        }
-                    }
-                }
-            });
-        }
+              <div class="mb-8">
+                <h3 class="font-bold border-r-4 border-emerald-600 pr-3 mb-2">تحليل التحقق</h3>
+                <p class="text-sm leading-relaxed text-slate-700">بناءً على رصد صيف 2025، تظهر ${selectedCity.city} كثافة حرارية (LST ${selectedCity.lst}°C) تؤثر على كفاءة التبريد. يوصى بزيادة NDVI بنسبة 15% لتقليل البصمة الكربونية.</p>
+              </div>
 
-        // Show visualization panel
-        function showVisualization() {
-            visualizationPanel.style.display = 'block';
-        }
-
-        // Handle Enter key press
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendMessage();
-            }
+              <div class="flex flex-wrap justify-between items-center gap-3 pt-4 border-t">
+                <div class="flex gap-2">
+                  <button class="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-800"><i data-lucide="download"></i> تحميل PDF</button>
+                  <button class="border border-slate-300 text-slate-700 px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-100">إرسال للمدقق</button>
+                </div>
+                <div class="flex items-center gap-2 text-emerald-700 font-bold"><i data-lucide="shield-check"></i> تم التحقق فضائياً</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      contentEl.innerHTML = html;
+      
+      // Attach city selection events
+      document.querySelectorAll('[data-city-card]').forEach(card => {
+        card.addEventListener('click', () => {
+          const city = card.dataset.cityCard;
+          const found = cityData.find(c => c.city === city);
+          if (found) {
+            selectedCity = { ...found };
+            renderComplianceTab();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+          }
         });
-    </script>
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // ----- Event listeners: tabs -----
+    function setupTabs() {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const tab = btn.dataset.tab;
+          if (tab) {
+            activeTab = tab;
+            renderAll();
+          }
+        });
+      });
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      // set initial selected city (first)
+      selectedCity = { ...cityData[0] };
+      renderAll();
+      setupTabs();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+
+    // Re-run lucide on any dynamic change
+  })();
+</script>
+<!-- ensure icons render -->
+<script>window.lucide && lucide.createIcons();</script>
 </body>
 </html>
