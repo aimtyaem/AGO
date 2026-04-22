@@ -7,38 +7,90 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
+    /* Base */
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: #0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
+
+    /* Tabs & highlights */
     .tab-active {
-      background: #059669 !important;
+      background: linear-gradient(90deg,#059669,#10b981) !important;
       color: white !important;
-      box-shadow: 0 4px 6px -1px rgba(5,150,105,0.3);
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
     }
     .city-card-active {
-      border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.12) !important;
+      border-color: rgba(16,185,129,0.9) !important;
+      background: linear-gradient(180deg, rgba(16,185,129,0.06), rgba(15,23,42,0.2));
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(16,185,129,0.06);
     }
-    input[type=range] {
-      accent-color: #10b981;
-    }
+    input[type=range] { accent-color: #10b981; }
+
+    /* Emissions bar */
     .emissions-bar {
       height: 8px;
-      border-radius: 4px;
+      border-radius: 999px;
       background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
     }
-    .report-card {
-      transition: all 0.2s ease;
+
+    /* Report card subtle transitions */
+    .report-card { transition: all 0.2s ease; }
+    .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%,100%{opacity:.6}50%{opacity:1} }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      min-height: 220px;
+      display: grid;
+      align-items: center;
+      color: white;
     }
-    /* smooth animations */
-    .animate-pulse-slow {
-      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    .hero .overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(2,6,23,0.65), rgba(2,6,23,0.35));
+      mix-blend-mode: multiply;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+    .hero .content {
+      position: relative;
+      z-index: 2;
     }
+
+    /* IMAGE CARD */
+    .city-image {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 12px;
+      display:block;
+      background:#0b1220;
+    }
+
+    /* small screens adjustments */
+    @media (min-width: 1024px) {
+      .city-image { height: 140px; }
+      .hero { min-height: 300px; }
+    }
+
+    /* In case asset is missing (placeholder color) */
+    .img-placeholder {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(90deg,#0b1220,#071027);
+      color: rgba(255,255,255,0.08);
+      font-weight:700;
+      letter-spacing:2px;
+    }
+
+    /* Utility to enforce RTL text within LTR image elements */
+    .ltr { direction:ltr; text-align:left; }
+
   </style>
 </head>
 <body class="bg-slate-900 text-slate-200 antialiased">
@@ -81,10 +133,10 @@
     
     // ----- ENHANCED DATA (NDVI, baseLST, emissions) -----
     const cityData = [
-      { city: 'حلوان', ndbi: 0.65, ndvi: 0.12, baseLst: 42.5, sector: 'الأسمنت والحديد', emissions: 12500, country: 'مصر' },
-      { city: 'العاشر من رمضان', ndbi: 0.58, ndvi: 0.18, baseLst: 40.8, sector: 'الكيمياويات والمنسوجات', emissions: 8400, country: 'مصر' },
-      { city: 'المحلة الكبرى', ndbi: 0.72, ndvi: 0.10, baseLst: 44.2, sector: 'الغزل والنسيج', emissions: 9200, country: 'مصر' },
-      { city: 'القاهرة الجديدة', ndbi: 0.40, ndvi: 0.45, baseLst: 38.5, sector: 'التكنولوجيا والخدمات', emissions: 3100, country: 'مصر' }
+      { city: 'حلوان', ndbi: 0.65, ndvi: 0.12, baseLst: 42.5, sector: 'الأسمنت والحديد', emissions: 12500, country: 'مصر', img: '/assets/cities/helwan.jpg' },
+      { city: 'العاشر من رمضان', ndbi: 0.58, ndvi: 0.18, baseLst: 40.8, sector: 'الكيمياويات والمنسوجات', emissions: 8400, country: 'مصر', img: '/assets/cities/10ramadan.jpg' },
+      { city: 'المحلة الكبرى', ndbi: 0.72, ndvi: 0.10, baseLst: 44.2, sector: 'الغزل والنسيج', emissions: 9200, country: 'مصر', img: '/assets/cities/mahalla.jpg' },
+      { city: 'القاهرة الجديدة', ndbi: 0.40, ndvi: 0.45, baseLst: 38.5, sector: 'التكنولوجيا والخدمات', emissions: 3100, country: 'مصر', img: '/assets/cities/newcairo.jpg' }
     ];
 
     // Global state
@@ -181,24 +233,33 @@
         }
 
         // Emissions bar width relative to max emissions (12500)
-        const maxEmission = 12500;
+        const maxEmission = Math.max(...cityData.map(c => c.emissions));
         const barWidth = (city.emissions / maxEmission) * 100;
         
+        // Choose image path (fallback to placeholder div if missing)
+        const imgHtml = city.img ? `
+          <picture>
+            <source srcset="${city.img}" media="(min-width:1024px)">
+            <img loading="lazy" decoding="async" src="${city.img}" alt="${city.city} photo" class="city-image rounded-md">
+          </picture>
+        ` : `<div class="city-image img-placeholder rounded-md">NO IMG</div>`;
+
         return `
-          <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 hover:border-slate-500 transition shadow-md">
-            <div class="flex flex-wrap justify-between items-start gap-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <h4 class="font-bold text-lg">${city.city}</h4>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full border ${riskColor} font-bold">خطر ${riskLevel}</span>
+          <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 hover:border-slate-500 transition shadow-md flex gap-4">
+            <div class="w-36 flex-shrink-0">${imgHtml}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 justify-between">
+                <div>
+                  <h4 class="font-bold text-lg truncate">${city.city}</h4>
+                  <p class="text-xs text-slate-400 truncate">${city.sector}</p>
                 </div>
-                <p class="text-xs text-slate-400">${city.sector}</p>
-                <div class="mt-2 flex items-center gap-4 text-sm">
-                  <span><i data-lucide="thermometer" class="inline w-4 text-slate-500"></i> ${met.currentLst}°C</span>
-                  <span><i data-lucide="leaf" class="inline w-4 text-emerald-500"></i> NDVI ${met.effectiveNdvi}</span>
-                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border ${riskColor} font-bold">خطر ${riskLevel}</span>
               </div>
-              <div class="text-left min-w-[140px]">
+              <div class="mt-3 flex items-center gap-4 text-sm">
+                <span><i data-lucide="thermometer" class="inline w-4 text-slate-500"></i> ${met.currentLst}°C</span>
+                <span><i data-lucide="leaf" class="inline w-4 text-emerald-500"></i> NDVI ${met.effectiveNdvi}</span>
+              </div>
+              <div class="mt-3 text-left min-w-[140px]">
                 <div class="text-xs text-slate-400 mb-1">الانبعاثات (tCO₂)</div>
                 <div class="w-full bg-slate-700 rounded-full h-2.5 mb-1">
                   <div class="bg-gradient-to-r from-emerald-500 to-amber-500 h-2.5 rounded-full" style="width: ${barWidth}%"></div>
@@ -215,6 +276,30 @@
 
       const html = `
         <div class="space-y-6 animate-in fade-in">
+          <!-- Hero -->
+          <div class="hero overflow-hidden">
+            <picture>
+              <!-- Replace /assets/hero-lg.jpg with the high-fidelity banner from the mockup -->
+              <source srcset="/assets/hero-lg.jpg" media="(min-width:1024px)">
+              <img class="w-full h-full object-cover" src="/assets/hero-sm.jpg" alt="Eco urban hero" loading="lazy" decoding="async">
+            </picture>
+            <div class="overlay"></div>
+            <div class="content max-w-7xl mx-auto p-6 md:p-12">
+              <div class="md:flex md:items-center md:justify-between">
+                <div>
+                  <h2 class="text-2xl md:text-4xl font-black">عرض حي · التحقق الفضائي والامتثال CBAM</h2>
+                  <p class="mt-2 text-slate-200/80">مقياس حي لتأثير الحرارة، NDVI، وتقديرات تكلفة CBAM. ربط MRV بالتخضير لاستراتيجيات التكييف المناخي.</p>
+                </div>
+                <div class="mt-4 md:mt-0 md:text-left">
+                  <div class="flex gap-2 justify-end">
+                    <button onclick="document.querySelector('[data-tab=simulator]').click()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-lg font-semibold">فتح المحاكي</button>
+                    <button onclick="document.querySelector('[data-tab=compliance]').click()" class="border border-white/10 px-4 py-2 rounded-lg text-white/90">عرض ��قرير</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="flex flex-wrap items-center justify-between gap-4">
             <h2 class="text-2xl font-bold flex items-center gap-2"><i data-lucide="globe" class="text-emerald-400"></i> لوحة المحفظة · MRV حي</h2>
             <div class="bg-slate-800/80 px-4 py-2 rounded-full text-sm border border-slate-700 flex items-center gap-2">
@@ -280,7 +365,10 @@
           <!-- City cards selector -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             ${cityData.map(city => `
-              <div data-city="${city.city}" class="city-selector cursor-pointer rounded-xl border-2 p-3 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-900/20' : 'border-slate-700 bg-slate-800/70'}">
+              <div data-city="${city.city}" class="city-selector cursor-pointer rounded-xl border-2 p-3 transition-all ${selectedCity.city === city.city ? 'city-card-active border-emerald-400' : 'border-slate-700 bg-slate-800/60'}">
+                <div class="mb-2">
+                  ${city.img ? `<img loading="lazy" decoding="async" src="${city.img}" alt="${city.city}" class="city-image rounded-md">` : `<div class="city-image img-placeholder rounded-md">NO IMG</div>`}
+                </div>
                 <div class="flex justify-between"><span class="font-bold">${city.city}</span><i data-lucide="${selectedCity.city === city.city ? 'check-circle' : 'circle'}" class="w-4 text-slate-400"></i></div>
                 <p class="text-[10px] text-slate-400 truncate">${city.sector}</p>
                 <div class="mt-2 flex justify-between text-[11px]"><span>NDBI ${city.ndbi}</span><span>NDVI ${city.ndvi}</span></div>
@@ -416,10 +504,17 @@
               <h3 class="font-bold text-lg mb-4 flex items-center"><i data-lucide="map-pin" class="text-emerald-400 ml-2"></i> اختر المنشأة</h3>
               <div class="space-y-2">
                 ${cityData.map(city => `
-                  <div data-city-card="${city.city}" class="city-report-card p-4 rounded-xl border transition cursor-pointer ${selectedCity.city === city.city ? 'city-card-active border-emerald-400 bg-emerald-500/10' : 'border-slate-700 bg-slate-800/60 hover:bg-slate-700/60'}">
-                    <div class="flex justify-between"><span class="font-bold">${city.city}</span> ${selectedCity.city === city.city ? '<i data-lucide="check-circle" class="text-emerald-500 w-5"></i>' : ''}</div>
-                    <p class="text-xs text-slate-400">${city.sector}</p>
-                    <div class="flex gap-3 mt-2 text-xs"><span>LST ${city.baseLst}°C</span><span>NDVI ${city.ndvi}</span></div>
+                  <div data-city-card="${city.city}" class="city-report-card p-4 rounded-xl border transition cursor-pointer ${selectedCity.city === city.city ? 'city-card-active border-emerald-400' : 'border-slate-700 bg-slate-800/60'}">
+                    <div class="flex gap-3 items-start">
+                      <div class="w-20 flex-shrink-0">
+                        ${city.img ? `<img loading="lazy" decoding="async" src="${city.img}" alt="${city.city}" class="city-image rounded-md">` : `<div class="city-image img-placeholder rounded-md">NO IMG</div>`}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex justify-between"><span class="font-bold">${city.city}</span> ${selectedCity.city === city.city ? '<i data-lucide="check-circle" class="text-emerald-500 w-5"></i>' : ''}</div>
+                        <p class="text-xs text-slate-400">${city.sector}</p>
+                        <div class="flex gap-3 mt-2 text-xs"><span>LST ${city.baseLst}°C</span><span>NDVI ${city.ndvi}</span></div>
+                      </div>
+                    </div>
                   </div>
                 `).join('')}
               </div>
@@ -476,12 +571,22 @@
                 </p>
               </div>
 
+              <div class="mb-6">
+                <!-- Report banner placeholder: replace /assets/report-banner.jpg with mockup image -->
+                <div class="rounded-lg overflow-hidden border">
+                  <picture>
+                    <source srcset="/assets/report-banner-lg.jpg" media="(min-width:1024px)">
+                    <img src="/assets/report-banner-sm.jpg" alt="report banner" loading="lazy" decoding="async" class="w-full object-cover h-44">
+                  </picture>
+                </div>
+              </div>
+
               <div class="flex flex-wrap justify-between items-center pt-4 border-t">
                 <div class="flex gap-3">
-                  <button class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2" onclick="alert('📄 جاري تحميل تقرير PDF')"><i data-lucide="download"></i> PDF</button>
+                  <button class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2" onclick="alert('📄 جاري تحميل تقرير PDF')"><i data-lucide="download" class="w-4"></i> تحميل PDF</button>
                   <button class="border px-5 py-2 rounded-lg text-sm">إرسال للمراجع</button>
                 </div>
-                <div class="text-emerald-700 font-bold flex items-center"><i data-lucide="shield-check"></i> مُتحقق فضائياً</div>
+                <div class="text-emerald-700 font-bold flex items-center"><i data-lucide="shield-check" class="w-4 h-4 me-2"></i> مُتحقق فضائياً</div>
               </div>
             </div>
           </div>
