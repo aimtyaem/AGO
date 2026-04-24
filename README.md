@@ -21,38 +21,61 @@ A modern, responsive landing page for AGO Consulting, built to guide exporters a
 ## 📁 Project Structure
 ```text
 AGO/
+├── img/          # Asset directory for screenshots and branding
 └── index.html    # Single-page website containing all HTML, CSS, and JS
 
 ```
-## 🚀 Getting Started
-### 1. Clone the Repository
+
+🚀 Getting Started
+
+1. Clone the Repository
+
 ```bash
-git clone [https://github.com/aimtyaem/AGO.git](https://github.com/aimtyaem/AGO.git)
+git clone https://github.com/aimtyaem/AGO.git
 cd AGO
 
 ```
-### 2. Open Locally
+
+2. Open Locally
+
 Simply open index.html in your browser, or run a lightweight server:
+
 ```bash
 # Using Python 3
 python -m http.server 8000
 
 ```
+
 Then visit http://localhost:8000.
-### 3. Deployment
-The project is configured for **GitHub Pages**. Any changes pushed to the main branch will automatically reflect at:
+
+3. Deployment
+
+The project is configured for GitHub Pages. Any changes pushed to the main branch will automatically reflect at:
 https://aimtyaem.github.io/AGO/
-## 🎨 Customization
- * **Colors & Styles:** Modify the Tailwind classes directly in the HTML or override the <style> block for custom branding.
- * **Content:** Replace the placeholder text in the "Services" and "Timeline" sections to match specific organizational needs.
- * **Contact Backend:** The current form is static. Connect the action attribute to a service like Formspree, Netlify Forms, or a custom API to enable functionality.
-## 📸 Screenshots
+
+🎨 Customization
+
+· Colors & Styles: Modify the Tailwind classes directly in the HTML or override the <style> block for custom branding.
+· Content: Replace the placeholder text in the "Services" and "Timeline" sections to match specific organizational needs.
+· Contact Backend: The current form is static. Connect the action attribute to a service like Formspree, Netlify Forms, or a custom API to enable functionality.
+
+📸 Screenshots
 
 <details>
 <summary>Click to expand screenshots</summary>
-### Hero Section
-### Timeline
-### Services
+
+Hero Section
+
+https://raw.githubusercontent.com/aimtyaem/AGO/main/img/hero-lg.jpg
+
+Live Timeline
+
+https://raw.githubusercontent.com/aimtyaem/AGO/main/img/hero-sm.jpg
+
+Services
+
+https://raw.githubusercontent.com/aimtyaem/AGO/main/img/services.jpg
+
 </details>
 
 ## 🤝 Contributing
@@ -60,7 +83,7 @@ Contributions and feedback are welcome! Feel free to open an issue or submit a p
 
 ## 📄 License
 This project is for demonstration purposes. All rights reserved unless otherwise stated.
-
 ## 📧 Contact
-
 Built with ❤️ by **AEM publications** | © 2026
+```
+
