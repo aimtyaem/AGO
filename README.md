@@ -47,15 +47,20 @@ https://aimtyaem.github.io/AGO/
  * **Content:** Replace the placeholder text in the "Services" and "Timeline" sections to match specific organizational needs.
  * **Contact Backend:** The current form is static. Connect the action attribute to a service like Formspree, Netlify Forms, or a custom API to enable functionality.
 ## 📸 Screenshots
+
 <details>
 <summary>Click to expand screenshots</summary>
 ### Hero Section
 ### Timeline
 ### Services
 </details>
+
 ## 🤝 Contributing
 Contributions and feedback are welcome! Feel free to open an issue or submit a pull request to improve the documentation or design.
+
 ## 📄 License
 This project is for demonstration purposes. All rights reserved unless otherwise stated.
+
 ## 📧 Contact
+
 Built with ❤️ by **AEM publications** | © 2026
