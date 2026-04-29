@@ -50,6 +50,12 @@
     @media (min-width:1024px){ .city-image{ height:140px } .hero{ min-height:300px } }
 
     .img-placeholder { display:flex; align-items:center; justify-content:center; background: linear-gradient(90deg,#0b1220,#071027); color: rgba(255,255,255,0.06); font-weight:700; letter-spacing:2px; }
+
+    /* Google translate small adjustments */
+    #google_translate_element { display:inline-flex; align-items:center; gap:8px; }
+    .goog-te-combo { border-radius:8px !important; padding:6px 8px !important; background:rgba(255,255,255,0.05); color:#e6eef3 !important; border:none !important; }
+    /* hide footer branding if desired (optional) */
+    /* .goog-logo-link { display:none !important; } */
   </style>
 </head>
 <body class="bg-slate-900 text-slate-200 antialiased">
@@ -67,16 +73,22 @@
           <p class="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest">Live MRV · CBAM · NDVI Sim</p>
         </div>
       </div>
-      <div class="flex gap-1.5 bg-slate-900/60 p-1 rounded-xl backdrop-blur-sm border border-slate-700">
-        <button data-tab="dashboard" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 ms-1"></i> لوحة القيادة
-        </button>
-        <button data-tab="simulator" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="sliders" class="inline-block w-4 h-4 ms-1"></i> محاكي التخضير
-        </button>
-        <button data-tab="compliance" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
-          <i data-lucide="file-check" class="inline-block w-4 h-4 ms-1"></i> تقرير CBAM
-        </button>
+
+      <div class="flex items-center gap-3">
+        <div class="flex gap-1.5 bg-slate-900/60 p-1 rounded-xl backdrop-blur-sm border border-slate-700">
+          <button data-tab="dashboard" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+            <i data-lucide="layout-dashboard" class="inline-block w-4 h-4 ms-1"></i> لوحة القيادة
+          </button>
+          <button data-tab="simulator" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+            <i data-lucide="sliders" class="inline-block w-4 h-4 ms-1"></i> محاكي التخضير
+          </button>
+          <button data-tab="compliance" class="tab-btn px-4 md:px-6 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-300 hover:bg-slate-700">
+            <i data-lucide="file-check" class="inline-block w-4 h-4 ms-1"></i> تقرير CBAM
+          </button>
+        </div>
+
+        <!-- Google Translate widget placement -->
+        <div id="google_translate_element" class="text-xs"></div>
       </div>
     </div>
   </nav>
@@ -584,6 +596,104 @@
 
   })();
 </script>
+
+<!-- Google Translate integration -->
+<script type="text/javascript">
+  // Initialize the Google Translate widget with pageLanguage 'ar' (source is Arabic)
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'ar',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+      autoDisplay: false
+    }, 'google_translate_element');
+  }
+
+  // Load Google's translate script (will call googleTranslateElementInit on callback)
+  (function loadGoogleTranslate() {
+    var gt = document.createElement('script');
+    gt.type = 'text/javascript';
+    gt.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    gt.async = true;
+    document.head.appendChild(gt);
+  })();
+
+  // Auto-select language based on browser locale (and switch page dir/lang).
+  // Note: reliable country-by-IP requires a geolocation API; this uses browser locale.
+  (function autoSelectGoogleTranslate() {
+    // List of known RTL languages to preserve dir
+    const RTL_LANGS = ['ar','he','fa','ur','ps','sd','ug','yi'];
+
+    function getPreferredLang() {
+      const nav = navigator;
+      let lang = (nav.languages && nav.languages[0]) || nav.language || nav.userLanguage || 'en';
+      // Normalize: take primary subtag (e.g., "en-US" -> "en")
+      return lang ? lang.split('-')[0] : 'en';
+    }
+
+    function setDocumentLangDir(langCode) {
+      try {
+        document.documentElement.lang = langCode;
+        document.documentElement.dir = RTL_LANGS.includes(langCode) ? 'rtl' : 'ltr';
+      } catch (e) { /* ignore */ }
+    }
+
+    // Try to change the widget selection after it loads
+    function attemptAutoApply() {
+      const target = getPreferredLang();
+      setDocumentLangDir(target);
+
+      // wait until the widget is present
+      const combo = document.querySelector('.goog-te-combo');
+      if (!combo) {
+        // retry a few times because the widget loads async
+        let tries = 0;
+        const timer = setInterval(() => {
+          tries++;
+          const c = document.querySelector('.goog-te-combo');
+          if (c) {
+            clearInterval(timer);
+            applySelection(c, target);
+          } else if (tries > 20) {
+            clearInterval(timer);
+          }
+        }, 500);
+      } else {
+        applySelection(combo, target);
+      }
+    }
+
+    function applySelection(combo, lang) {
+      try {
+        // Set select value and trigger change
+        combo.value = lang;
+        combo.dispatchEvent(new Event('change'));
+
+        // After translation, ensure page dir is correct according to selected language.
+        // The Google translate iframe may set dir on <html>, but we re-apply after a short delay.
+        setTimeout(() => setDocumentLangDir(lang), 1200);
+      } catch (e) {
+        // some environments block programmatic selection; fail silently
+        console.warn('auto-translate apply failed', e);
+      }
+    }
+
+    // Run after a short delay to allow google script to initialize
+    window.addEventListener('load', () => {
+      setTimeout(attemptAutoApply, 900);
+    });
+
+    // Also observe changes in the google translate widget to keep dir/lang in sync
+    const observerTarget = document.getElementById('google_translate_element');
+    if (observerTarget) {
+      const mo = new MutationObserver(() => {
+        const combo = document.querySelector('.goog-te-combo');
+        if (combo && combo.value) setDocumentLangDir(combo.value.split('-')[0] || combo.value);
+      });
+      mo.observe(observerTarget, { childList: true, subtree: true });
+    }
+  })();
+</script>
+
 <script>window.lucide && lucide.createIcons();</script>
 </body>
 </html>
